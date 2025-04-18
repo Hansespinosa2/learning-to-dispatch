@@ -24,3 +24,4 @@ Homepage = "https://github.com/Hansespinosa2/learning-to-dispatch"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["rl_dispatch*"]
+

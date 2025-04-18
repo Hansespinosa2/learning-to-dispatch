@@ -2,7 +2,7 @@ import gymnasium
 import torch
 from gymnasium import spaces
 from rl_dispatch.data_handle.graph import create_operations_graphs
-from rl_dispatch.data_handle.data_handle import load_data_file, read_objective
+from rl_dispatch.data_handle.data_handle import load_data_file, read_objective, compute_objective
 from rl_dispatch.environment.features import build_super_graph, get_operation_edges, get_resource_edges
 import json 
 import time
@@ -18,7 +18,7 @@ class DisplibEnvV1(gymnasium.Env):
         
         self.device = device
         self.verbose = verbose
-
+        self.problem_data = problem_data
         self.op_graphs = create_operations_graphs(problem_data)
         self.op_objs = read_objective(problem_data)
 
@@ -286,6 +286,7 @@ class DisplibEnvV1(gymnasium.Env):
 
     
     def step(self, action):
+        action = 1
         start_time = time.time()
         if self.done:
             raise RuntimeError("Environment is done. Reset it to start again.")
@@ -320,9 +321,10 @@ class DisplibEnvV1(gymnasium.Env):
 
         self._update_feasible_nodes()
         self._update_state_graph_features()
-        
+        looped_time = 0
         while self.current_feasible_node_idx == -1 and not self.done:
             self.time += 1
+            looped_time += 1
             
             self._update_feasible_nodes()
             self._update_state_graph_features()
@@ -330,18 +332,19 @@ class DisplibEnvV1(gymnasium.Env):
             if self.feasible_nodes.any():
                 self.current_feasible_node_idx = 0
             
+            if looped_time >= 1000:
+                print("Instance stuck in a deadlock")
+                return self.state_graph, reward, True, {}
+            
         
         # Check if the final nodes are picked
         if self.done:
             reward += 1000
             self.solution_dict = self._build_solution_dict()
-            
-            with open("data/solutions/solution.json", "w") as f:
-                json.dump(self.solution_dict, f, indent=2)
 
             self.log_state("All nodes picked. Environment done.")
         
-        return self.state_graph, reward, self.done, {}
+        return self.state_graph, reward, self.done, self.solution_dict
     
     def render(self, mode='human'):
         if mode == 'human':
@@ -360,6 +363,8 @@ class DisplibEnvV1(gymnasium.Env):
             # If this node was started at some point, we have a "start_time"
             if len(self.operation_times[node_id]) > 0:
                 start_time = int(self.operation_times[node_id][0].item())  # first time entry is start
+                if start_time < 0:
+                    continue
                 train_id = int(self.state_graph.x[node_id][0].item())  # index 0 => train_id
                 operation = int(self.state_graph.x[node_id][1].item())  # index 1 => original op ID
                 events.append({
@@ -373,7 +378,7 @@ class DisplibEnvV1(gymnasium.Env):
 
         # Placeholder objective_value (set to 0 or a computed score if you have one)
         solution_json = {
-            "objective_value": 0, #TODO: Compute the score here
+            "objective_value": compute_objective(self.problem_data,events), #TODO: Compute the score here
             "events": events
         }
         return solution_json

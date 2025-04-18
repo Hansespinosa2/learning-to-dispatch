@@ -35,6 +35,11 @@ def train_double_dqn_agent(data, max_episodes:int=500, batch_size:int = 32, save
             discounted_reward += (gamma ** step) * reward
             step += 1
             agent.replay(batch_size)
+            
+            # Terminate if more than 1K actions
+            if step > 1000:
+                print("Terminating episode due to exceeding 1K actions.")
+                break
 
         
         agent.rewards.append(total_reward)
@@ -62,7 +67,7 @@ def train_double_dqn_agent(data, max_episodes:int=500, batch_size:int = 32, save
                 avg_rewards.append(avg_reward)
                 
                 # Plot results
-                plot_results(save_episodes, avg_losses, avg_rewards)
+                # plot_results(save_episodes, avg_losses, avg_rewards)
                 
                 # Clear individual losses and rewards
                 agent.losses.clear()
@@ -73,7 +78,6 @@ def train_double_dqn_agent(data, max_episodes:int=500, batch_size:int = 32, save
 
 def plot_results(save_episodes:list, avg_losses:list, avg_rewards:list):
     plt.figure(figsize=(12, 5))
-
     plt.subplot(1, 2, 1)
     plt.plot(save_episodes, avg_losses, label='Average Losses')
     plt.yscale('log')
@@ -93,7 +97,7 @@ def plot_results(save_episodes:list, avg_losses:list, avg_rewards:list):
     plt.savefig(f'results/results_save.png')
     plt.close()
 
-input_path = 'data/problems/toy_ex_t1_w4.json'
+input_path = 'data/problems/line3_1.json'
 data = load_data_file(input_path)
 checkpoint_path = 'model_saves/checkpoint_save.pth'
 train_double_dqn_agent(data)

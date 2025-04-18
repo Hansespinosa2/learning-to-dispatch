@@ -17,9 +17,11 @@ class DoubleDQNAgent:
         self.criterion = nn.MSELoss()
         self.memory = []
         self.gamma = 0.999
+        self.exploration = 'epsilon_greedy' # gibbs or epsilon_greedy
         self.epsilon = 1
         self.epsilon_decay = 0.99
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.10
+        self.temperature = 0.000001
         self.update_target_frequency = 1000
         self.timestep = 0
         self.losses = []
@@ -36,7 +38,12 @@ class DoubleDQNAgent:
                 self.memory.pop(0)  # Remove the oldest memory entry
 
     def act(self, state, node_idx):
-        if random.random() < self.epsilon:
+        if self.exploration == 'gibbs':
+            with torch.no_grad():
+                q_values = self.model(state, node_idx)
+                probabilities = torch.softmax(q_values / self.temperature, dim=0)
+            return torch.multinomial(probabilities, 1).item()
+        elif self.exploration == "epsilon_greedy" and random.random() < self.epsilon:
             return self.env.action_space.sample()
         with torch.no_grad():
             q_values = self.model(state, node_idx)
