@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rl-dispatch"
+version = "0.0.1"
+authors = [
+  { name="Andres Espinosa", email="andres.espinosa.academic@gmail.com" },
+]
+description = "A research-focused package to model the train dispatching problem in a reinforcement learning formulation."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/Hansespinosa2/learning-to-dispatch"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rl_dispatch*"]

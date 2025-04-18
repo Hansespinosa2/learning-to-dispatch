@@ -1,0 +1,70 @@
+{
+    "objective_value": 40,
+    "events": [
+        {
+            "time": 0,
+            "train": 0,
+            "operation": 0
+        },
+        {
+            "time": 0,
+            "train": 1,
+            "operation": 0
+        },
+        {
+            "time": 5,
+            "train": 0,
+            "operation": 1
+        },
+        {
+            "time": 10,
+            "train": 0,
+            "operation": 2
+        },
+        {
+            "time": 15,
+            "train": 0,
+            "operation": 3
+        },
+        {
+            "time": 20,
+            "train": 0,
+            "operation": 4
+        },
+        {
+            "time": 25,
+            "train": 0,
+            "operation": 5
+        },
+        {
+            "time": 30,
+            "train": 0,
+            "operation": 6
+        },
+        {
+            "time": 35,
+            "train": 0,
+            "operation": 7
+        },
+        {
+            "time": 40,
+            "train": 0,
+            "operation": 8
+        },
+        {
+            "time": 45,
+            "train": 0,
+            "operation": 9
+        },
+        {
+            "time": 55,
+            "train": 1,
+            "operation": 1
+        },
+        {
+            "time": 60,
+            "train": 1,
+            "operation": 2
+        }
+    ]
+}

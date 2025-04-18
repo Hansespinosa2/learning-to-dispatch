@@ -1,0 +1,63 @@
+{
+  "trains": [
+    [
+      {
+        "start_ub": 0,
+        "min_duration": 5,
+        "resources": [{"resource": "r1", "release_time": 10}],
+        "successors": [1]
+      },
+      {
+        "min_duration": 5,
+        "successors": [2],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {
+        "min_duration": 5,
+        "successors": [3],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {
+        "min_duration": 5,
+        "successors": [4],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {
+        "min_duration": 5,
+        "successors": [5],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {
+        "min_duration": 5,
+        "successors": [6],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {
+        "min_duration": 5,
+        "successors": [7],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {
+        "min_duration": 5,
+        "successors": [8],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {
+        "min_duration": 5,
+        "successors": [9],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {"min_duration": 5, "successors": []}
+    ],
+    [
+      {"start_ub": 0, "min_duration": 5, "successors": [1]},
+      {
+        "min_duration": 5,
+        "successors": [2],
+        "resources": [{"resource": "r1", "release_time": 10}]
+      },
+      {"min_duration": 5, "successors": []}
+    ]
+  ],
+  "objective": [{"type": "op_delay", "train": 0, "operation": 8, "coeff": 1}]
+}

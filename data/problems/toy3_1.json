@@ -1,0 +1,183 @@
+{
+    "trains": [
+        [
+            {   "start_ub": 0,
+                "min_duration": 0,
+                "successors": [1]
+            },
+            {   "min_duration": 54,
+                "resources": [
+                    {   "resource": "A",
+                        "release_time": 10
+                    }],
+                "successors": [2]
+            },
+            {   "start_lb": 120,
+                "min_duration": 8,
+                "resources": [
+                    {   "resource": "B",
+                        "release_time": 10
+                    },
+                    {   "resource": "C",
+                        "release_time": 10
+                    }],
+                "successors": [3,4]
+            },
+            {   "min_duration": 8,
+                "resources": [
+                    {   "resource": "D",
+                        "release_time": 10
+                    },
+                    {    "resource": "E",
+                        "release_time": 10
+                    }],
+                "successors": [5]
+            },
+            {   "min_duration": 8,
+                "resources": [
+                    {   "resource": "D",
+                        "release_time": 10
+                    },
+                    {    "resource": "F",
+                        "release_time": 10
+                    }],
+                "successors": [6]
+            },
+            {   "min_duration": 8,
+            "resources": [
+                {    "resource": "E",
+                    "release_time": 10
+                },
+                {   "resource": "G",
+                    "release_time": 30
+                }],
+            "successors": [8]
+            },
+            {   "min_duration": 8,
+            "resources": [
+                {    "resource": "F",
+                    "release_time": 10
+                },
+                {   "resource": "H",
+                    "release_time": 30
+                }],
+            "successors": [7]
+            },
+            {   "min_duration": 8,
+            "resources": [
+                {    "resource": "H",
+                    "release_time": 10
+                },
+                {   "resource": "G",
+                    "release_time": 30
+                }],
+            "successors": [8]
+            },
+            {   "min_duration": 8,
+                "resources": [
+                {    "resource": "G",
+                    "release_time": 10
+                },
+                {   "resource": "I",
+                    "release_time": 30
+                }],
+            "successors": [9]
+            },            
+            {   "min_duration":0,
+            "successors":[]
+            }
+        ],
+        [
+            {   "start_ub": 0,
+                "min_duration": 0,
+                "successors": [1]
+            },
+            {   "min_duration": 8,
+                "resources": [
+                    {   "resource": "A",
+                        "release_time": 10
+                    }],
+                "successors": [2]
+            },
+            {   
+                "min_duration": 32,
+                "resources": [
+                    {   "resource": "B",
+                        "release_time": 10
+                    },
+                    {   "resource": "C",
+                        "release_time": 10
+                    }],
+                "successors": [3,4]
+            },
+            {   "min_duration": 8,
+                "resources": [
+                    {   "resource": "D",
+                        "release_time": 10
+                    },
+                    {    "resource": "E",
+                        "release_time": 10
+                    }],
+                "successors": [5]
+            },
+            {   "min_duration": 8,
+                "resources": [
+                    {   "resource": "D",
+                        "release_time": 10
+                    },
+                    {    "resource": "F",
+                        "release_time": 10
+                    }],
+                "successors": [6]
+            },
+            {   "min_duration": 8,
+            "resources": [
+                {    "resource": "E",
+                    "release_time": 10
+                },
+                {   "resource": "G",
+                    "release_time": 30
+                }],
+            "successors": [8]
+            },
+            {   "min_duration": 8,
+            "resources": [
+                {    "resource": "F",
+                    "release_time": 10
+                },
+                {   "resource": "H",
+                    "release_time": 30
+                }],
+            "successors": [7]
+            },
+            {   "min_duration": 8,
+            "resources": [
+                {    "resource": "H",
+                    "release_time": 10
+                },
+                {   "resource": "G",
+                    "release_time": 30
+                }],
+            "successors": [8]
+            },
+            {   "min_duration": 8,
+                "resources": [
+                {    "resource": "G",
+                    "release_time": 10
+                },
+                {   "resource": "I",
+                    "release_time": 30
+                }],
+            "successors": [9]
+            },            
+            {   "min_duration":0,
+            "successors":[]
+            }
+        ]],
+    "objective":[{"type":"op_delay","train":0,"operation":2,"threshold":0,"increment":6},
+    {"type":"op_delay","train":0,"operation":5,"threshold":1,"coeff":1},
+    {"type":"op_delay","train":0,"operation":9,"threshold":1,"coeff":1},
+    {"type":"op_delay","train":1,"operation":2,"threshold":0,"increment":6},
+    {"type":"op_delay","train":1,"operation":5,"threshold":1,"coeff":1},
+    {"type":"op_delay","train":1,"operation":9,"threshold":1,"coeff":1}
+    ]}

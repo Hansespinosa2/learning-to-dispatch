@@ -1,0 +1,63 @@
+{
+    "trains": [
+      [
+        {
+          "start_ub": 0,
+          "min_duration": 5,
+          "successors": [1]
+        },
+        {
+          "min_duration": 5,
+          "successors": [2, 3],
+          "resources": [{"resource": "r1", "release_time": 10}, {"resource": "r2", "release_time": 10}]
+        },
+        {
+          "min_duration": 5,
+          "successors": [4],
+          "resources": [{"resource": "r3", "release_time": 10}]
+        },
+        {
+          "min_duration": 5,
+          "successors": [4],
+          "resources": [{"resource": "r4", "release_time": 10}]
+        },
+        {
+          "min_duration": 5,
+          "successors": [5, 6, 7],
+          "resources": [{"resource": "r5", "release_time": 10}, {"resource": "r6", "release_time": 10}, {"resource": "r7", "release_time": 10}]
+        },
+        {
+          "min_duration": 5,
+          "successors": [8],
+          "resources": [{"resource": "r8", "release_time": 10}]
+        },
+        {
+          "min_duration": 5,
+          "successors": [8],
+          "resources": [{"resource": "r9", "release_time": 10}]
+        },
+        {
+          "min_duration": 5,
+          "successors": [8],
+          "resources": [{"resource": "r10", "release_time": 10}]
+        },
+        {
+          "min_duration": 5,
+          "successors": [9],
+          "resources": [{"resource": "r11", "release_time": 10}]
+        },
+        {"min_duration": 5, "successors": []}
+      ],
+      [
+        {"start_ub": 0, "min_duration": 5, "successors": [1]},
+        {
+          "min_duration": 5,
+          "successors": [2],
+          "resources": [{"resource": "r1", "release_time": 10}]
+        },
+        {"min_duration": 5, "successors": []}
+      ]
+    ],
+    "objective": [{"type": "op_delay", "train": 0, "operation": 8, "coeff": 1}]
+  }
+  
