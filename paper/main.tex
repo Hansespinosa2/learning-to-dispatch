@@ -6,7 +6,6 @@
 \usepackage{amsmath}
 \usepackage{tikz}
 \usepackage{subcaption}
-\usepackage[margin=1in]{geometry}
 \usetikzlibrary{arrows.meta, positioning, fit}
 
 \definecolor{uf_blue}{RGB}{17,27, 150}
@@ -81,8 +80,36 @@ Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses fut
 \label{sss:reinforcement_learning}
 % Cover Markov Decision Processes
 % As well as DQN
-\subsubsection{Markov Decision Processes}
+Deep Reinforcement Learning (DRL) is a subfield of machine learning that combines reinforcement learning (RL) with deep learning techniques to solve complex decision-making problems. 
+RL focuses on training agents to make sequential decisions by interacting with an environment, receiving feedback in the form of rewards, and learning to maximize cumulative rewards over time. 
+Deep learning, on the other hand, enables the representation of high-dimensional data through neural networks, making it possible to handle complex state and action spaces.
 
+The seminal work by Mnih et al.~\cite{drl:Mnih13} introduced the Deep Q-Network (DQN), which demonstrated the ability of DRL to learn policies directly from raw pixel inputs in Atari games. 
+This approach used a convolutional neural network to approximate the Q-value function, enabling the agent to make decisions in high-dimensional state spaces. 
+The success of DQN highlighted the potential of combining deep learning with RL to tackle problems that were previously intractable.
+
+Building on this foundation, Silver et al.~\cite{drl:silver2017mastering} showcased the power of DRL in mastering the game of Go, a task long considered a grand challenge in artificial intelligence. 
+Their AlphaGo system employed deep neural networks to evaluate board positions and guide search strategies, achieving superhuman performance. 
+Subsequently, the AlphaZero algorithm~\cite{drl:silver2017alphazero} extended this approach to generalize across multiple games, such as chess and shogi, using a self-play mechanism and a unified reinforcement learning framework.
+
+These advancements have established DRL as a versatile and powerful tool for solving sequential decision-making problems in diverse domains, including robotics, healthcare, and transportation systems.
+\subsubsection{Markov Decision Processes}
+Markov Decision Processes (MDPs) provide a mathematical framework for modeling decision-making in environments where outcomes are partly random and partly under the control of a decision-maker. An MDP is defined by the tuple $(S, A, P, R, \gamma)$:
+
+\begin{itemize}
+    \item $S$: A finite set of states representing all possible configurations of the environment.
+    \item $A$: A finite set of actions available to the agent.
+    \item $P(s'|s, a)$: The state transition probability function, which defines the probability of transitioning to state $s'$ given the current state $s$ and action $a$.
+    \item $R(s, a)$: The reward function, which specifies the immediate reward received after taking action $a$ in state $s$.
+    \item $\gamma \in [0, 1]$: The discount factor, which determines the importance of future rewards relative to immediate rewards.
+\end{itemize}
+
+The goal in an MDP is to find a policy $\pi(a|s)$, which is a mapping from states to actions, that maximizes the expected cumulative reward, also known as the return:
+\[
+G_t = \mathbb{E} \left[ \sum_{k=0}^\infty \gamma^k R(s_{t+k}, a_{t+k}) \right].
+\]
+
+MDPs are widely used in reinforcement learning to model environments where agents learn optimal policies through interaction and feedback.
 
 
 \begin{figure}
@@ -112,6 +139,23 @@ Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses fut
 \end{figure}
 
 \subsubsection{Deep Q-Network}
+Deep Q-Networks (DQN) are a class of reinforcement learning algorithms that approximate the Q-value function using deep neural networks. The Q-value function, $Q(s, a)$, represents the expected cumulative reward of taking action $a$ in state $s$ and following the optimal policy thereafter. The DQN agent learns this function through experience replay and iterative updates.
+
+The key components of a DQN agent are:
+
+\begin{itemize}
+    \item \textbf{Q-Network:} A neural network that takes the current state $s_t$ as input and outputs Q-values for all possible actions. The network is parameterized by weights $\theta$, which are updated during training.
+    \item \textbf{Target Network:} A separate network with weights $\theta^-$, used to stabilize training by providing target Q-values. The target network is periodically updated to match the Q-network.
+    \item \textbf{Experience Replay:} A buffer that stores past experiences $(s_t, a_t, r_t, s_{t+1})$. During training, mini-batches of experiences are sampled randomly from the buffer to break correlations and improve learning stability.
+    \item \textbf{Bellman Equation:} The Q-network is trained to minimize the temporal difference (TD) error, defined as:
+    \[
+    \delta = \left[ r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-) - Q(s_t, a_t; \theta) \right],
+    \]
+    where $\gamma$ is the discount factor.
+    \item \textbf{Exploration-Exploitation Tradeoff:} The agent balances exploration (choosing random actions) and exploitation (choosing actions with the highest Q-value) using an $\epsilon$-greedy policy.
+\end{itemize}
+
+The training process involves iteratively updating the Q-network's weights $\theta$ using gradient descent to minimize the TD error. The learned Q-values guide the agent in selecting actions that maximize long-term rewards.
 
 
 \begin{figure}
@@ -148,19 +192,95 @@ Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses fut
 \subsection{Graph Neural Networks}
 \label{sss:gnn}
 % Cover graph neural networks
+Graph Neural Networks (GNNs) are a class of neural networks designed to operate on graph-structured data, where entities are represented as nodes and their relationships as edges. GNNs leverage the graph topology and node features to learn meaningful representations for tasks such as node classification, link prediction, and graph classification.
 
-\section{Related Work}
-\label{sse:related_work}
-% This can be a full literature review following the structure of:
-% 1) Train Dispatch Problem Formulation
-% 2) Deep Reinforcement Learning with similar problems
-% 3) Graph Neural Networks
-I am \cite{gnndrl:Devailly_2022}
+\subsubsection{Overview of GNNs}
+GNNs extend traditional neural networks by incorporating message-passing mechanisms, where nodes aggregate information from their neighbors iteratively. This process enables the network to capture both local and global graph structures. The key components of GNNs include:
+
+\begin{itemize}
+    \item \textbf{Message Passing:} Nodes exchange information with their neighbors through a series of message-passing steps. At each step, a node updates its representation by aggregating messages from its neighbors.
+    \item \textbf{Aggregation Functions:} Common aggregation functions include summation, mean, and max-pooling, which ensure permutation invariance in the graph structure.
+    \item \textbf{Update Functions:} After aggregation, node representations are updated using learnable functions, often implemented as neural networks.
+    \item \textbf{Pooling Layers:} For graph-level tasks, pooling layers summarize the entire graph into a fixed-size representation.
+\end{itemize}
+
+\subsubsection{Applications in Reinforcement Learning}
+GNNs have shown significant promise in reinforcement learning (RL) for tasks involving graph-structured environments. Munikoti et al.~\cite{gnndrl:munikoti2022challengesopportunitiesdeepreinforcement} provide a comprehensive review of how GNNs enhance RL by enabling agents to reason over relational data, such as traffic networks or social graphs. They highlight the ability of GNNs to generalize across varying graph sizes and structures.
+
+In multi-objective optimization problems, such as influence maximization in social networks, GNNs combined with meta-reinforcement learning have demonstrated effectiveness. For instance, the GraMeR framework~\cite{gnndrl:munikoti2022gramergraphmetareinforcement} leverages GNNs to learn transferable policies across different graph instances, optimizing multiple objectives simultaneously.
+
+Devailly et al.~\cite{gnndrl:Devailly_2022} introduce IG-RL, an inductive graph reinforcement learning approach for large-scale traffic signal control. By using GNNs, their method efficiently handles massive traffic networks, enabling scalable and adaptive control strategies.
+
+In summary, GNNs provide a powerful framework for learning on graph-structured data, with significant implications for reinforcement learning in domains like transportation, social networks, and beyond.
+
 \section{Formulation}
 \label{sse:formulation}
 
 \subsection{Train Operation Graphs}
 \label{sss:train_ops}
+
+The Train Operation Directed Acyclic Graph (DAG) format provides a structured representation of train operations and their constraints. Conceptually, each train is modeled as a DAG, called the operations graph, with the following key components:
+
+\begin{itemize}
+    \item \textbf{Nodes:} Represent operations, each with:
+    \begin{itemize}
+        \item A \textbf{minimum duration} $\delta$, specifying the shortest allowable time for the operation.
+        \item \textbf{Start time bounds} $[t_{\text{min}}, t_{\text{max}}]$, defining when the operation may begin.
+        \item A set of \textbf{resources} required exclusively during the operation, each with an optional \textbf{release time}.
+    \end{itemize}
+    \item \textbf{Edges:} Define precedence constraints between operations, ensuring that dependent operations are executed in the correct order.
+    \item \textbf{Entry and Exit Nodes:} The graph has a single \textbf{entry operation} (no incoming edges) and a single \textbf{exit operation} (no outgoing edges).
+\end{itemize}
+
+\subsubsection{Resources and Constraints}
+Resources represent entities (e.g., track sections) that cannot be shared between trains simultaneously. Operations requiring the same resource must satisfy the following:
+\begin{itemize}
+    \item The \textbf{end event} of one operation must precede the \textbf{start event} of the next.
+    \item The \textbf{release time} of the resource must be respected.
+\end{itemize}
+
+\subsubsection{Feasibility Conditions}
+A solution is feasible if:
+\begin{enumerate}
+    \item Events are ordered chronologically.
+    \item Each train's operations form a valid path from the entry to the exit operation.
+    \item Start times respect the bounds $[t_{\text{min}}, t_{\text{max}}]$.
+    \item Operation durations meet or exceed the minimum $\delta$.
+    \item Resource constraints are satisfied across all trains.
+\end{enumerate}
+
+\subsubsection{Objective Function}
+The objective minimizes the cost of delays, defined as:
+\[
+v_i = c \cdot \max(0, t - t_{\text{threshold}}) + d \cdot H(t - t_{\text{threshold}})
+\]
+where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is the Heaviside step function.
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+        node/.style={draw,text width=2.5cm, align=center,rounded corners, fill=blue!20, minimum width=1.5cm, minimum height=1cm},
+        edge/.style={->, thick},
+        resource/.style={draw, rounded corners, fill=orange!30, minimum width=1.5cm, minimum height=1cm},
+        every node/.style={font=\small}
+    ]
+        % Nodes
+        \node[node] (op0) at (0, 0) {op 0 \\ $\delta = 5$ \\ $r_1$};
+        \node[node] (op1) at (3, 1.5) {op 1 \\ $\delta = 0$ \\ $r_1, r_2$};
+        \node[node] (op2) at (3, -1.5) {op 2 \\ $\delta = 0$ \\ $r_1, r_3$};
+        \node[node] (op3) at (6, 0) {op 3 \\ $\delta = 5$ \\ $r_4$};
+        \node[node] (op7) at (9, 0) {op 7 \\ $\delta = 0$ \\ $t \leq 10$};
+
+        % Edges
+        \draw[edge] (op0) -- (op1);
+        \draw[edge] (op0) -- (op2);
+        \draw[edge] (op1) -- (op3);
+        \draw[edge] (op2) -- (op3);
+        \draw[edge] (op3) -- (op7);
+    \end{tikzpicture}
+    \caption{Example Train Operation DAG with resource and duration constraints.}
+    \label{fig:train_dag}
+\end{figure}
 
 
 \subsection{Resource Conflict Graphs}
