@@ -32,6 +32,42 @@
 \section{Introduction}
 \label{sse:introduction}
 
+% What is the problem?
+The Train Dispatching Problem (TDP) concerns the real-time management of train movements across a rail network, ensuring safe and efficient use of infrastructure. 
+This involves deciding when and where trains should move, stop, or wait, based on factors such as schedules, track availability, and priority rules. 
+Dispatching decisions must be made continuously and quickly, especially in high-traffic networks, making the problem both operationally critical and computationally challenging.
+
+% Why does the problem exist?
+Despite significant technological advances in other areas of transportation and logistics, train dispatching remains heavily reliant on human decision-makers or static rule-based systems. 
+This is largely because the problem is highly combinatorial: at any given moment, there are exponentially many possible sequences of decisions that can lead to different network outcomes. 
+Human dispatchers bring experience and intuition to these situations, but they are limited in how much information they can process and how consistently they can manage large-scale disruptions or optimize traffic flow over time.
+
+% Why solve this problem?
+Improving train dispatching systems has the potential to reduce passenger delays, minimize dispatching errors, and prevent network deadlocks—situations where no train can proceed without violating safety or scheduling constraints. 
+Optimized dispatching can also improve energy efficiency and capacity utilization, making rail transport more competitive and sustainable. 
+In dense urban transit systems or busy freight corridors, even marginal improvements in dispatching can lead to significant gains in overall network performance and reliability.
+
+% Why solve with RL?
+Reinforcement Learning (RL) offers a new approach to tackling the TDP by framing it as a sequential decision-making problem, where an agent learns to make dispatching decisions through interactions with a simulated environment. 
+RL is particularly well-suited for problems with delayed consequences, dynamic environments, and large state spaces—all of which characterize train dispatching. 
+With recent successes in games, robotics, and supply chain optimization, RL is emerging as a promising tool for learning policies that outperform hand-crafted heuristics in complex, real-world systems.
+
+% Project scope.
+This paper focuses on the formulation of the Train Dispatching Problem for RL-based approaches, rather than on developing a fully trained solution. 
+We emphasize how the problem can be encoded as an RL task using graph structures to represent rail networks, define meaningful states, actions, and rewards, and manage constraints inherent to railway systems. 
+Our goal is to provide a robust and extensible framework that future researchers and practitioners can build upon when applying RL methods to train dispatching and related infrastructure scheduling problems.
+
+% Paper Outline
+To provide a thorough understanding of our approach, the remainder of this paper is organized as follows. 
+In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem and its mixed-integer programming (MIP) formulation, as well as the DISPLIB benchmark format (\ref{sss:train}). 
+We then outline key reinforcement learning concepts, including Markov Decision Processes (\ref{sss:reinforcement_learning}) and Deep Q-Networks, highlighting their relevance to sequential decision-making in dispatching tasks. This is followed by an introduction to Graph Neural Networks (\ref{sss:gnn}), which are critical for representing the structure of railway networks. 
+Section~\ref{sse:related_work} provides a review of related literature, including recent RL applications to combinatorial scheduling, graph-based approaches, and prior work on train dispatching. 
+Section~\ref{sse:formulation} details our proposed formulation, introducing Train Operation Graphs (\ref{sss:train_ops}), Resource Conflict Graphs (\ref{sss:resource_conflicts}), and the definitions of our state and action spaces (\ref{sss:state_space}, \ref{sss:action_space}). 
+In Section~\ref{sse:results}, we demonstrate preliminary results from our Deep Graph Q-Network agent (\ref{sss:agent}), evaluating its performance on sample instances and visualizing its learned strategies (\ref{sss:solutions}). 
+Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses future directions for scaling and refining the framework (\ref{sss:future_work}, \ref{sss:conclusion}).
+
+
+
 \section{Problem Background}
 \label{sse:background}
 \subsection{Train Dispatch Problem}
