@@ -5,6 +5,8 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{tikz}
+\usepackage{subcaption}
+\usepackage[margin=1in]{geometry}
 \usetikzlibrary{arrows.meta, positioning, fit}
 
 \definecolor{uf_blue}{RGB}{17,27, 150}
@@ -269,6 +271,124 @@ I am \cite{gnndrl:Devailly_2022}
     \label{fig:qnetwork_tictactoe}
 \end{figure}
 
+
+\begin{figure}[htbp]
+    \centering
+
+    % ANN
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}[scale=0.8,
+            input/.style={circle,draw=blue!50,fill=blue!20,thick,minimum size=1.2em},
+            hidden/.style={circle,draw=black!60,fill=black!10,thick,minimum size=1.2em},
+            output/.style={circle,draw=red!70,fill=red!20,thick,minimum size=1.2em}
+        ]
+            % Input Layer
+            \foreach \i in {1,...,3}
+                \node[input] (I\i) at (0,-\i) {};
+
+            % Hidden Layer
+            \foreach \i in {1,...,4}
+                \node[hidden] (H\i) at (2,-\i+0.5) {};
+
+            % Output Layer
+            \foreach \i in {1,...,2}
+                \node[output] (O\i) at (4,-\i-0.5) {};
+
+            % Connections
+            \foreach \i in {1,...,3}
+                \foreach \j in {1,...,4}
+                    \draw[->] (I\i) -- (H\j);
+
+            \foreach \i in {1,...,4}
+                \foreach \j in {1,...,2}
+                    \draw[->] (H\i) -- (O\j);
+        \end{tikzpicture}
+        \caption{Fully Connected ANN}
+    \end{subfigure}
+    \hfill
+
+    % CNN
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+            \begin{tikzpicture}[
+                image/.style={draw, rounded corners, fill=blue!20, minimum width=2.5cm, minimum height=2.5cm},
+                filter/.style={draw, thick, fill=red!20, minimum width=1cm, minimum height=1cm},
+                feature/.style={draw, thick, fill=green!20, minimum width=1cm, minimum height=2cm},
+                ann/.style={draw, thick, fill=purple!20, circle, minimum size=1cm},
+                arrow/.style={->, thick, >=Stealth},
+                every node/.style={font=\small}
+            ]
+
+            % Nodes
+            \node[image] (input) at (0, 0) {\includegraphics[width=2.5cm]{example-image}};
+            \node[filter] (filter) at (0, -2.5) {};
+            \node[feature] (feature) at (0, -5) {};
+            \node[ann] (ann) at (0, -7.5) {NN};
+
+            % Labels
+            \node[right] at (input.east) {28x28 Image};
+            \node[right] at (filter.east) {3x3 Filter};
+            \node[right] at (feature.east) {Pooled Features};
+            \node[right] at (ann.east) {Neural Network};
+
+            % Arrows
+            \draw[arrow] (input) -- (filter);
+            \draw[arrow] (filter) -- (feature);
+            \draw[arrow] (feature) -- (ann);
+
+            \end{tikzpicture}
+            \caption{Convolutional Neural Network (CNN)}
+    \end{subfigure}
+    \hfill
+
+    % GNN
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+            \begin{tikzpicture}[
+                node/.style={circle, draw, fill=orange!30, minimum size=1cm},
+                message/.style={draw, thick, fill=blue!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
+                aggregate/.style={draw, thick, fill=green!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
+                arrow/.style={->, thick, >=Stealth},
+                doublearrow/.style={<->, dotted, thick, >=Stealth},
+                every node/.style={font=\small}
+            ]
+
+            % Nodes
+            \node[node] (A) at (0, 0) {A};
+            \node[node] (B) at (2, 1.5) {B};
+            \node[node] (C) at (2, -1.5) {C};
+            \node[node] (D) at (4, 0) {D};
+
+            % Edges
+            \draw[doublearrow] (A) -- (B);
+            \draw[doublearrow] (A) -- (C);
+            \draw[doublearrow] (B) -- (D);
+            \draw[doublearrow] (C) -- (D);
+
+            % Message Passing
+            \node[message] (msg) at (2, -3) {Message Passing};
+            \draw[arrow] (C) -- (msg);
+            \draw[arrow] (A) -- (msg);
+            \draw[arrow] (D) -- (msg);
+
+            % Aggregation
+            \node[aggregate] (agg) at (2, -4.5) {Aggregation};
+            \draw[arrow] (msg) -- (agg);
+            % Pooling
+            \node[aggregate] (pooling) at (2, -6) {Pooling};
+            \draw[arrow] (agg) -- (pooling);
+            
+
+            % Output
+            \node[node, fill=purple!30] (output) at (2, -7.5) {NN};
+            \draw[arrow] (pooling) -- (output);
+            \end{tikzpicture}
+            \caption{Graph Neural Network (GNN) with Message Passing and Aggregation Steps}
+    \end{subfigure}
+
+    \caption{Simplified visual comparison of common neural network architectures}
+\end{figure}
 
 
 
