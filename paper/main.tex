@@ -12,7 +12,8 @@
 
 \begin{document}
 
-\title{Learning to Dispatch: A Reinforcement Learning Framework for Train Networks}
+\title{Learning to Dispatch: A Reinforcement Learning Framework for Train Dispatch Networks}
+\titlerunning{\textcolor{uf_blue}{Learning to Dispatch}}
 
 \author{\textcolor{uf_blue}{Andres Espinosa}}
 \institute{
@@ -104,7 +105,7 @@ Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses fut
     \draw[arrow] (env) to[bend left=25] node[below right] {$r_{t+1}$} (reward);
     
     \end{tikzpicture}
-    \caption{The reinforcement learning framework.}
+    \caption{The simplified markov decision process and reinforcement learning framework.}
     \label{fig:rl_framework}
 \end{figure}
 
@@ -136,7 +137,7 @@ Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses fut
         to[bend right=60] node[left] {$s_{t+1}$} (state.east);
 
     \end{tikzpicture}
-    \caption{The Deep Q-Network action selection and feedback loop.}
+    \caption{Simplified Deep Q-Network action selection and feedback loop.}
     \label{fig:dqn_loop}
 \end{figure}
 
