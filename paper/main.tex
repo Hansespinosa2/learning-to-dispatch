@@ -305,8 +305,52 @@ where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is t
 \subsection{State Space}
 \label{sss:state_space}
 
+In this formulation, the state space is represented as a Directed Acyclic Graph (DAG) composed of unconnected operation graphs. 
+Each node in the graph corresponds to an operation and is characterized by a feature vector that captures relevant attributes of the operation. 
+The node feature vector includes the following parameters:
+
+\begin{itemize}
+    \item $x_1$: Train ID of the operation.
+    \item $x_2$: Operation ID of the operation.
+    \item $x_3$: Start lower bound of the operation (0 if not present).
+    \item $x_4$: Start upper bound of the operation ($10^6$ if not present).
+    \item $x_5$: Minimum duration of the operation (0 if not present).
+    \item $x_6$: Can pick (1 if the operation has not been picked and can be picked, 0 otherwise).
+    \item $x_7$: Currently picked (1 if a train has selected this operation and no successors exist, 0 otherwise).
+    \item $x_8$: Picked (1 if the operation has already been picked, 0 otherwise).
+    \item $x_9$: Not picked yet (1 if the operation has not been picked but can be picked in the future, 0 otherwise).
+    \item $x_{10}$: Feasible (1 if the operation can be picked, 0 otherwise).
+    \item $x_{11}$: Cannot be picked (1 if the operation has not been picked and cannot be picked in the future, 0 otherwise).
+    \item $x_{12}$: Threshold of the operation (0 if not present).
+    \item $x_{13}$: Haversine component of the operation (0 if not present).
+    \item $x_{14}$: Linear delay of the operation (0 if not present).
+    \item $x_{15}$: Operation start time (0 if not started yet).
+    \item $x_{16}$: Operation end time (0 if not started yet).
+\end{itemize}
+
+Edges in the graph are assigned a feature vector that captures the type of relationship and resource constraints. 
+The edge feature vector is defined as:
+\begin{itemize}
+    \item $e_1$: Operation type (1 if this edge is between two train operations, 0 o/w)
+    \item $e_2$: Resource type (1 if this edge represents a resource share, 0 o/w)
+    \item $e_3$: Release time (the release time of the incoming operation's resource, 0 if there is no release time or if it is an operation type edge)
+\end{itemize}
+
+This representation provides a simple yet comprehensive structure for encoding the operations and their relationships, which can be processed by a Graph Neural Network (GNN) to generate a graph embedding for downstream decision-making tasks.
+
 \subsection{Action Space}
 \label{sss:action_space}
+The action space in this formulation consists of three primary actions that the agent can take at each decision step:
+
+\begin{itemize}
+    \item \textbf{Add Node:} The agent selects a specific operation node from the graph to be added to the current schedule. This action is only valid if the selected node satisfies all feasibility conditions, such as respecting precedence constraints and resource availability. The agent must choose one node from the set of feasible nodes.
+
+    \item \textbf{Discard Node:} The agent chooses to discard a specific operation node, indicating that the operation will not be scheduled. This action is irreversible and is typically used for operations that are deemed unnecessary or infeasible to include in the schedule.
+
+    \item \textbf{Advance Timestep:} The agent advances the simulation to the next timestep, allowing the environment to update the state of operations and resources. This action is used when no immediate scheduling decisions can be made or when the agent determines that advancing time is the optimal strategy.
+\end{itemize}
+
+Each action is represented as a discrete choice, and the agent's policy maps the current state of the environment to one of these actions. The design of this action space ensures that the agent has the flexibility to make scheduling decisions dynamically while adhering to the constraints of the problem.
 
 % \section{Preliminary Agent Results}
 % \label{sse:results}
@@ -324,9 +368,33 @@ where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is t
 
 \subsection{Future Work}
 \label{sss:future_work}
+This work opens several avenues for future research and development:
+
+\subsubsection{Improved Action Space Design}
+The current action space, while functional, may not fully capture the complexities and nuances of the Train Dispatching Problem. 
+Future work could explore more expressive and flexible action representations, such as hierarchical or multi-step actions, to better align with real-world dispatching scenarios. 
+Additionally, incorporating domain-specific heuristics or constraints directly into the action space could improve the efficiency and feasibility of the learned policies.
+
+\subsubsection{Graph Reinforcement Learning Algorithm Development}
+The integration of Graph Neural Networks (GNNs) with reinforcement learning (RL) has shown promise in handling graph-structured data. 
+However, the development of specialized graph RL algorithms tailored to the unique characteristics of train dispatching remains an open challenge. 
+Future research could focus on designing algorithms that leverage the structural properties of train operation and resource conflict graphs, enabling more efficient learning and better generalization across different network configurations.
+
+\subsubsection{Extensions to Other Applications}
+While this work focuses on train dispatching, the proposed framework has the potential to be adapted to other domains involving complex scheduling and resource allocation problems. 
+Examples include air traffic management, urban transit systems, and supply chain logistics. 
+Extending the framework to these applications would require domain-specific modifications to the state and action spaces, as well as the underlying graph representations, but could significantly broaden the impact and utility of the approach.
 
 \subsection{Conclusion}
 \label{sss:conclusion}
+
+This honors thesis introduces a proof-of-concept reinforcement learning framework for the Train Dispatching Problem, emphasizing the formulation and potential of graph-based representations and deep learning techniques. 
+By framing the problem as a Markov Decision Process and leveraging Graph Neural Networks, this work provides a foundational approach to train dispatching that is both scalable and extensible.
+
+As a formulation-focused study, this thesis aims to inspire future research in applying reinforcement learning to complex scheduling and resource allocation problems. 
+Future efforts should prioritize refining the action space, developing tailored graph reinforcement learning algorithms, and exploring applications in other domains. 
+These advancements will build upon the groundwork laid here, contributing to the broader understanding and development of intelligent transportation systems.
+
 
 
 \section{Appendix}
