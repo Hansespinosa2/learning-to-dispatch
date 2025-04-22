@@ -82,3 +82,85 @@
    author={Devailly, Francois-Xavier and Larocque, Denis and Charlin, Laurent},
    year={2022},
    month=jul, pages={7496–7507} }
+
+
+% TRAIN DISPATCHING PROBLEM
+@article{train:traindrl,
+title = {Solving the train dispatching problem via deep reinforcement learning},
+journal = {Journal of Rail Transport Planning & Management},
+volume = {26},
+pages = {100394},
+year = {2023},
+issn = {2210-9706},
+doi = {https://doi.org/10.1016/j.jrtpm.2023.100394},
+url = {https://www.sciencedirect.com/science/article/pii/S2210970623000264},
+author = {Valerio Agasucci and Giorgio Grani and Leonardo Lamorgese},
+keywords = {Scheduling, Reinforcement learning, Optimization},
+abstract = {Every day, railways experience disturbances and disruptions, both on the network and the fleet side, that affect the stability of rail traffic. Induced delays propagate through the network, which leads to a mismatch in demand and offer for goods and passengers, and, in turn, to a loss in service quality. In these cases, it is the duty of human traffic controllers, the so-called dispatchers, to do their best to minimize the impact on traffic. However, dispatchers inevitably have a limited depth of perception of the knock-on effect of their decisions, particularly how they affect areas of the network that are outside their direct control. In recent years, much work in Decision Science has been devoted to developing methods to solve the problem automatically and support the dispatchers in this challenging task. This paper investigates Machine Learning-based methods for tackling this problem, proposing two different Deep Q-Learning methods(Decentralized and Centralized). Numerical results show the superiority of these techniques respect to the classical linear Q-Learning based on matrices. Moreover the Centralized approach is compared with a MILP formulation showing interesting results. The experiments are inspired on data provided by a U.S. class 1 railroad.}
+}
+
+@article{train:Sch_licke_2025,
+   title={Solving the Real-Time Train Dispatching Problem by Column Generation},
+   ISSN={1526-5447},
+   url={http://dx.doi.org/10.1287/trsc.2023.0215},
+   DOI={10.1287/trsc.2023.0215},
+   journal={Transportation Science},
+   publisher={Institute for Operations Research and the Management Sciences (INFORMS)},
+   author={Schälicke, Maik and Nachtigall, Karl},
+   year={2025},
+   month=feb }
+
+
+@article{train:LAMORGESE2013559,
+title = {The track formulation for the Train Dispatching problem},
+journal = {Electronic Notes in Discrete Mathematics},
+volume = {41},
+pages = {559-566},
+year = {2013},
+issn = {1571-0653},
+doi = {https://doi.org/10.1016/j.endm.2013.05.138},
+url = {https://www.sciencedirect.com/science/article/pii/S1571065313001418},
+author = {Leonardo Lamorgese and Carlo Mannino},
+keywords = {Rescheduling, dispatching, disjunctive formulation},
+abstract = {With few exceptions, train movements are still controlled by human operators, the dispatchers. They establish routes and precedence between trains in real-time in order to cope with normal operations but also to recover from deviations from the timetable, and minimize overall delays. Implicitly they tackle and solve repeatedly a hard optimization problem, the Train Dispatching Problem. We recently developed a decomposition approach which allowed us to solve real-life instances to optimality or near optimality in times acceptable for dispatchers. We present here some new ideas which appear to significantly reduce computational times while solving to optimality even large instances.}
+}
+
+@article{train:doi:10.1287/opre.2014.1327,
+author = {Lamorgese, Leonardo and Mannino, Carlo},
+title = {An Exact Decomposition Approach for the Real-Time Train Dispatching Problem},
+journal = {Operations Research},
+volume = {63},
+number = {1},
+pages = {48-64},
+year = {2015},
+doi = {10.1287/opre.2014.1327},
+
+URL = { 
+    
+        https://doi.org/10.1287/opre.2014.1327
+    
+    
+
+},
+eprint = { 
+    
+        https://doi.org/10.1287/opre.2014.1327
+    
+    
+
+}
+,
+    abstract = { Trains’ movements on a railway network are regulated by official timetables. Deviations and delays occur quite often in practice, demanding fast rescheduling and rerouting decisions in order to avoid conflicts and minimize overall delay. This is the real-time train dispatching problem. In contrast with the classic “holistic” approach, we show how to decompose the problem into smaller subproblems associated with the line and the stations. This decomposition is the basis for a master-slave solution algorithm, in which the master problem is associated with the line and the slave problem is associated with the stations. The two subproblems are modeled as mixed integer linear programs, with specific sets of variables and constraints. Similarly to the classical Benders’ decomposition approach, slave and master communicate through suitable feasibility cuts in the variables of the master. Extensive tests on real-life instances from single and double-track lines in Italy showed significant improvements over current dispatching performances. A decision support system based on this exact approach has been in operation in Norway since February 2014 and represents one of the first operative applications of mathematical optimization to train dispatching. }
+}
+
+@incollection{train:lamorgese2018train,
+  author    = {Leonardo Cameron Lamorgese and Carlo Mannino and Dario Pacciarelli and Johanna T{\"o}rnquist Krasemann},
+  title     = {Train Dispatching},
+  booktitle = {Handbook of Optimization in the Railway Industry},
+  series    = {International Series in Operations Research \& Management Science},
+  volume    = {268},
+  year      = {2018},
+  publisher = {Springer},
+  url       = {http://hdl.handle.net/11250/2581671},
+  note      = {Accepted version},
+}

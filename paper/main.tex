@@ -4,26 +4,24 @@
 \usepackage{graphicx} 
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{subcaption}
+\usetikzlibrary{arrows.meta, positioning, fit}
 
 \definecolor{uf_blue}{RGB}{17,27, 150}
 \definecolor{uf_orange}{RGB}{150,100,17}
 
 \begin{document}
 
-\title{Learning to Dispatch: A Reinforcement Learning Framework for Train Networks} %Should think about this at the meeting more.
+\title{Learning to Dispatch: A Reinforcement Learning Framework for Train Dispatch Networks}
+\titlerunning{\textcolor{uf_blue}{Learning to Dispatch}}
 
-\author{
-    \begin{minipage}{0.50\textwidth}
-        \centering
-        \textcolor{uf_blue}{Andres Espinosa} \\
-        \textcolor{uf_orange}{Industrial and Systems Engineering} \\
-        \textcolor{uf_orange}{University of Florida} \\
-        \textcolor{uf_orange}{andresespinosa@ufl.edu} \\ 
-    \end{minipage}
+\author{\textcolor{uf_blue}{Andres Espinosa}}
+\institute{
+    \textcolor{uf_orange}{Industrial and Systems Engineering \\
+    University of Florida}\\
+    \textcolor{uf_orange}{\email{andresespinosa@ufl.edu}}
 }
-\institute{}
-
-
 \maketitle
 
 
@@ -34,43 +32,483 @@
 
 
 \section{Introduction}
+\label{sse:introduction}
+
+% What is the problem?
+The Train Dispatching Problem (TDP) concerns the real-time management of train movements across a rail network, ensuring safe and efficient use of infrastructure. 
+This involves deciding when and where trains should move, stop, or wait, based on factors such as schedules, track availability, and priority rules. 
+Dispatching decisions must be made continuously and quickly, especially in high-traffic networks, making the problem both operationally critical and computationally challenging.
+
+% Why does the problem exist?
+Despite significant technological advances in other areas of transportation and logistics, train dispatching remains heavily reliant on human decision-makers or static rule-based systems. 
+This is largely because the problem is highly combinatorial: at any given moment, there are exponentially many possible sequences of decisions that can lead to different network outcomes. 
+Human dispatchers bring experience and intuition to these situations, but they are limited in how much information they can process and how consistently they can manage large-scale disruptions or optimize traffic flow over time.
+
+% Why solve this problem?
+Improving train dispatching systems has the potential to reduce passenger delays, minimize dispatching errors, and prevent network deadlocks—situations where no train can proceed without violating safety or scheduling constraints. 
+Optimized dispatching can also improve energy efficiency and capacity utilization, making rail transport more competitive and sustainable. 
+In dense urban transit systems or busy freight corridors, even marginal improvements in dispatching can lead to significant gains in overall network performance and reliability.
+
+% Why solve with RL?
+Reinforcement Learning (RL) offers a new approach to tackling the TDP by framing it as a sequential decision-making problem, where an agent learns to make dispatching decisions through interactions with a simulated environment. 
+RL is particularly well-suited for problems with delayed consequences, dynamic environments, and large state spaces—all of which characterize train dispatching. 
+With recent successes in games, robotics, and supply chain optimization, RL is emerging as a promising tool for learning policies that outperform hand-crafted heuristics in complex, real-world systems.
+
+% Project scope.
+This paper focuses on the formulation of the Train Dispatching Problem for RL-based approaches, rather than on developing a fully trained solution. 
+We emphasize how the problem can be encoded as an RL task using graph structures to represent rail networks, define meaningful states, actions, and rewards, and manage constraints inherent to railway systems. 
+Our goal is to provide a robust and extensible framework that future researchers and practitioners can build upon when applying RL methods to train dispatching and related infrastructure scheduling problems.
+
+% Paper Outline
+To provide a thorough understanding of our approach, the remainder of this paper is organized as follows. 
+In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem and its mixed-integer programming (MIP) formulation, as well as the DISPLIB benchmark format (\ref{sss:train}). 
+We then outline key reinforcement learning concepts, including Markov Decision Processes (\ref{sss:reinforcement_learning}) and Deep Q-Networks, highlighting their relevance to sequential decision-making in dispatching tasks. This is followed by an introduction to Graph Neural Networks (\ref{sss:gnn}), which are critical for representing the structure of railway networks. 
+Section~\ref{sse:related_work} provides a review of related literature, including recent RL applications to combinatorial scheduling, graph-based approaches, and prior work on train dispatching. 
+Section~\ref{sse:formulation} details our proposed formulation, introducing Train Operation Graphs (\ref{sss:train_ops}), Resource Conflict Graphs (\ref{sss:resource_conflicts}), and the definitions of our state and action spaces (\ref{sss:state_space}, \ref{sss:action_space}). 
+In Section~\ref{sse:results}, we demonstrate preliminary results from our Deep Graph Q-Network agent (\ref{sss:agent}), evaluating its performance on sample instances and visualizing its learned strategies (\ref{sss:solutions}). 
+Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses future directions for scaling and refining the framework (\ref{sss:future_work}, \ref{sss:conclusion}).
+
+
 
 \section{Problem Background}
-
+\label{sse:background}
 \subsection{Train Dispatch Problem}
+\label{sss:train}
 % This should cover the MIP formulation and the general outline of the problem
 % This should also cover the DISPLIB data format and all that.
 \subsection{Deep Reinforcement Learning}
+\label{sss:reinforcement_learning}
 % Cover Markov Decision Processes
 % As well as DQN
+Deep Reinforcement Learning (DRL) is a subfield of machine learning that combines reinforcement learning (RL) with deep learning techniques to solve complex decision-making problems. 
+RL focuses on training agents to make sequential decisions by interacting with an environment, receiving feedback in the form of rewards, and learning to maximize cumulative rewards over time. 
+Deep learning, on the other hand, enables the representation of high-dimensional data through neural networks, making it possible to handle complex state and action spaces.
+
+The seminal work by Mnih et al.~\cite{drl:Mnih13} introduced the Deep Q-Network (DQN), which demonstrated the ability of DRL to learn policies directly from raw pixel inputs in Atari games. 
+This approach used a convolutional neural network to approximate the Q-value function, enabling the agent to make decisions in high-dimensional state spaces. 
+The success of DQN highlighted the potential of combining deep learning with RL to tackle problems that were previously intractable.
+
+Building on this foundation, Silver et al.~\cite{drl:silver2017mastering} showcased the power of DRL in mastering the game of Go, a task long considered a grand challenge in artificial intelligence. 
+Their AlphaGo system employed deep neural networks to evaluate board positions and guide search strategies, achieving superhuman performance. 
+Subsequently, the AlphaZero algorithm~\cite{drl:silver2017alphazero} extended this approach to generalize across multiple games, such as chess and shogi, using a self-play mechanism and a unified reinforcement learning framework.
+
+These advancements have established DRL as a versatile and powerful tool for solving sequential decision-making problems in diverse domains, including robotics, healthcare, and transportation systems.
+\subsubsection{Markov Decision Processes}
+Markov Decision Processes (MDPs) provide a mathematical framework for modeling decision-making in environments where outcomes are partly random and partly under the control of a decision-maker. An MDP is defined by the tuple $(S, A, P, R, \gamma)$:
+
+\begin{itemize}
+    \item $S$: A finite set of states representing all possible configurations of the environment.
+    \item $A$: A finite set of actions available to the agent.
+    \item $P(s'|s, a)$: The state transition probability function, which defines the probability of transitioning to state $s'$ given the current state $s$ and action $a$.
+    \item $R(s, a)$: The reward function, which specifies the immediate reward received after taking action $a$ in state $s$.
+    \item $\gamma \in [0, 1]$: The discount factor, which determines the importance of future rewards relative to immediate rewards.
+\end{itemize}
+
+The goal in an MDP is to find a policy $\pi(a|s)$, which is a mapping from states to actions, that maximizes the expected cumulative reward, also known as the return:
+\[
+G_t = \mathbb{E} \left[ \sum_{k=0}^\infty \gamma^k R(s_{t+k}, a_{t+k}) \right].
+\]
+
+MDPs are widely used in reinforcement learning to model environments where agents learn optimal policies through interaction and feedback.
+
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+      agent/.style={draw, rounded corners, fill=blue!20, minimum width=2.5cm, minimum height=1.2cm},
+      env/.style={draw, rounded corners, fill=green!20, minimum width=2.5cm, minimum height=1.2cm},
+      reward/.style={draw, rounded corners, fill=orange!30, minimum width=2.5cm, minimum height=1.2cm},
+      arrow/.style={->, thick, >=Stealth},
+      every node/.style={font=\small}
+      ]
+    
+    % Nodes
+    \node[agent] (agent) at (0, 2) {Agent};
+    \node[env] (env) at (-2, -2) {Environment};
+    \node[reward] (reward) at (2, -2) {Dynamics};
+    
+    % Arrows
+    \draw[arrow] (agent) to[bend right=25] node[above left] {$a_t$} (env);
+    \draw[arrow] (env) to[bend right=25] node[below] {$s_{t+1}$} (reward);
+    \draw[arrow] (reward) to[bend right=25] node[above right] {$s_t$} (agent);
+    \draw[arrow] (env) to[bend left=25] node[below right] {$r_{t+1}$} (reward);
+    
+    \end{tikzpicture}
+    \caption{The simplified markov decision process and reinforcement learning framework.}
+    \label{fig:rl_framework}
+\end{figure}
+
+\subsubsection{Deep Q-Network}
+Deep Q-Networks (DQN) are a class of reinforcement learning algorithms that approximate the Q-value function using deep neural networks. The Q-value function, $Q(s, a)$, represents the expected cumulative reward of taking action $a$ in state $s$ and following the optimal policy thereafter. The DQN agent learns this function through experience replay and iterative updates.
+
+The key components of a DQN agent are:
+
+\begin{itemize}
+    \item \textbf{Q-Network:} A neural network that takes the current state $s_t$ as input and outputs Q-values for all possible actions. The network is parameterized by weights $\theta$, which are updated during training.
+    \item \textbf{Target Network:} A separate network with weights $\theta^-$, used to stabilize training by providing target Q-values. The target network is periodically updated to match the Q-network.
+    \item \textbf{Experience Replay:} A buffer that stores past experiences $(s_t, a_t, r_t, s_{t+1})$. During training, mini-batches of experiences are sampled randomly from the buffer to break correlations and improve learning stability.
+    \item \textbf{Bellman Equation:} The Q-network is trained to minimize the temporal difference (TD) error, defined as:
+    \[
+    \delta = \left[ r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-) - Q(s_t, a_t; \theta) \right],
+    \]
+    where $\gamma$ is the discount factor.
+    \item \textbf{Exploration-Exploitation Tradeoff:} The agent balances exploration (choosing random actions) and exploitation (choosing actions with the highest Q-value) using an $\epsilon$-greedy policy.
+\end{itemize}
+
+The training process involves iteratively updating the Q-network's weights $\theta$ using gradient descent to minimize the TD error. The learned Q-values guide the agent in selecting actions that maximize long-term rewards.
+
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+      qnet/.style={draw, rounded corners, fill=blue!20, minimum width=3cm, minimum height=1.2cm},
+      module/.style={draw, rounded corners, fill=purple!20, minimum width=3cm, minimum height=1.2cm},
+      action/.style={draw, rounded corners, fill=orange!30, minimum width=3cm, minimum height=1.2cm},
+      state/.style={draw, rounded corners, fill=green!20, minimum width=3cm, minimum height=1.2cm},
+      arrow/.style={->, thick, >=Stealth},
+      every node/.style={font=\small}
+    ]
+    
+    % Nodes
+    \node[state] (state) at (0, 2) {State $s_t$};
+    \node[qnet] (qnet) at (0, 0.5) {Q-Network Approximator};
+    \node[module] (explore) at (0, -1) {Exploration Module};
+    \node[action] (action) at (0, -2.5) {Action $a_t$};
+    
+    % Arrows
+    \draw[arrow] (state) -- (qnet);
+    \draw[arrow] (qnet) -- (explore);
+    \draw[arrow] (explore) -- (action);
+    \draw[arrow] (action.east) to[bend right=30] node[right] {} ++(2,1) 
+        to[bend right=60] node[left] {$s_{t+1}$} (state.east);
+
+    \end{tikzpicture}
+    \caption{Simplified Deep Q-Network action selection and feedback loop.}
+    \label{fig:dqn_loop}
+\end{figure}
+
+
+
 \subsection{Graph Neural Networks}
+\label{sss:gnn}
 % Cover graph neural networks
+Graph Neural Networks (GNNs) are a class of neural networks designed to operate on graph-structured data, where entities are represented as nodes and their relationships as edges. GNNs leverage the graph topology and node features to learn meaningful representations for tasks such as node classification, link prediction, and graph classification.
 
-\section{Related Work}
-% This can be a full literature review following the structure of:
-% 1) Train Dispatch Problem Formulation
-% 2) Deep Reinforcement Learning with similar problems
-% 3) Graph Neural Networks
-I am \cite{gnndrl:Devailly_2022}
+\subsubsection{Overview of GNNs}
+GNNs extend traditional neural networks by incorporating message-passing mechanisms, where nodes aggregate information from their neighbors iteratively. This process enables the network to capture both local and global graph structures. The key components of GNNs include:
+
+\begin{itemize}
+    \item \textbf{Message Passing:} Nodes exchange information with their neighbors through a series of message-passing steps. At each step, a node updates its representation by aggregating messages from its neighbors.
+    \item \textbf{Aggregation Functions:} Common aggregation functions include summation, mean, and max-pooling, which ensure permutation invariance in the graph structure.
+    \item \textbf{Update Functions:} After aggregation, node representations are updated using learnable functions, often implemented as neural networks.
+    \item \textbf{Pooling Layers:} For graph-level tasks, pooling layers summarize the entire graph into a fixed-size representation.
+\end{itemize}
+
+\subsubsection{Applications in Reinforcement Learning}
+GNNs have shown significant promise in reinforcement learning (RL) for tasks involving graph-structured environments. Munikoti et al.~\cite{gnndrl:munikoti2022challengesopportunitiesdeepreinforcement} provide a comprehensive review of how GNNs enhance RL by enabling agents to reason over relational data, such as traffic networks or social graphs. They highlight the ability of GNNs to generalize across varying graph sizes and structures.
+
+In multi-objective optimization problems, such as influence maximization in social networks, GNNs combined with meta-reinforcement learning have demonstrated effectiveness. For instance, the GraMeR framework~\cite{gnndrl:munikoti2022gramergraphmetareinforcement} leverages GNNs to learn transferable policies across different graph instances, optimizing multiple objectives simultaneously.
+
+Devailly et al.~\cite{gnndrl:Devailly_2022} introduce IG-RL, an inductive graph reinforcement learning approach for large-scale traffic signal control. By using GNNs, their method efficiently handles massive traffic networks, enabling scalable and adaptive control strategies.
+
+In summary, GNNs provide a powerful framework for learning on graph-structured data, with significant implications for reinforcement learning in domains like transportation, social networks, and beyond.
+
 \section{Formulation}
+\label{sse:formulation}
 
-\subsection{Graph Formulation}
+\subsection{Train Operation Graphs}
+\label{sss:train_ops}
+
+The Train Operation Directed Acyclic Graph (DAG) format provides a structured representation of train operations and their constraints. Conceptually, each train is modeled as a DAG, called the operations graph, with the following key components:
+
+\begin{itemize}
+    \item \textbf{Nodes:} Represent operations, each with:
+    \begin{itemize}
+        \item A \textbf{minimum duration} $\delta$, specifying the shortest allowable time for the operation.
+        \item \textbf{Start time bounds} $[t_{\text{min}}, t_{\text{max}}]$, defining when the operation may begin.
+        \item A set of \textbf{resources} required exclusively during the operation, each with an optional \textbf{release time}.
+    \end{itemize}
+    \item \textbf{Edges:} Define precedence constraints between operations, ensuring that dependent operations are executed in the correct order.
+    \item \textbf{Entry and Exit Nodes:} The graph has a single \textbf{entry operation} (no incoming edges) and a single \textbf{exit operation} (no outgoing edges).
+\end{itemize}
+
+\subsubsection{Resources and Constraints}
+Resources represent entities (e.g., track sections) that cannot be shared between trains simultaneously. Operations requiring the same resource must satisfy the following:
+\begin{itemize}
+    \item The \textbf{end event} of one operation must precede the \textbf{start event} of the next.
+    \item The \textbf{release time} of the resource must be respected.
+\end{itemize}
+
+\subsubsection{Feasibility Conditions}
+A solution is feasible if:
+\begin{enumerate}
+    \item Events are ordered chronologically.
+    \item Each train's operations form a valid path from the entry to the exit operation.
+    \item Start times respect the bounds $[t_{\text{min}}, t_{\text{max}}]$.
+    \item Operation durations meet or exceed the minimum $\delta$.
+    \item Resource constraints are satisfied across all trains.
+\end{enumerate}
+
+\subsubsection{Objective Function}
+The objective minimizes the cost of delays, defined as:
+\[
+v_i = c \cdot \max(0, t - t_{\text{threshold}}) + d \cdot H(t - t_{\text{threshold}})
+\]
+where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is the Heaviside step function.
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+        node/.style={draw,text width=2.5cm, align=center,rounded corners, fill=blue!20, minimum width=1.5cm, minimum height=1cm},
+        edge/.style={->, thick},
+        resource/.style={draw, rounded corners, fill=orange!30, minimum width=1.5cm, minimum height=1cm},
+        every node/.style={font=\small}
+    ]
+        % Nodes
+        \node[node] (op0) at (0, 0) {op 0 \\ $\delta = 5$ \\ $r_1$};
+        \node[node] (op1) at (3, 1.5) {op 1 \\ $\delta = 0$ \\ $r_1, r_2$};
+        \node[node] (op2) at (3, -1.5) {op 2 \\ $\delta = 0$ \\ $r_1, r_3$};
+        \node[node] (op3) at (6, 0) {op 3 \\ $\delta = 5$ \\ $r_4$};
+        \node[node] (op7) at (9, 0) {op 7 \\ $\delta = 0$ \\ $t \leq 10$};
+
+        % Edges
+        \draw[edge] (op0) -- (op1);
+        \draw[edge] (op0) -- (op2);
+        \draw[edge] (op1) -- (op3);
+        \draw[edge] (op2) -- (op3);
+        \draw[edge] (op3) -- (op7);
+    \end{tikzpicture}
+    \caption{Example Train Operation DAG with resource and duration constraints.}
+    \label{fig:train_dag}
+\end{figure}
+
+
+\subsection{Resource Conflict Graphs}
+\label{sss:resource_conflicts}
+
 
 \subsection{State Space}
+\label{sss:state_space}
 
 \subsection{Action Space}
+\label{sss:action_space}
 
-\section{Results}
+\section{Preliminary Agent Results}
+\label{sse:results}
+
+\subsection{Deep Graph Q-Network Agent}
+\label{sss:agent}
+
+
+\subsection{Solutions}
+\label{sss:solutions}
 
 
 \section{Conclusion and Future Work}
+\label{sse:conclusion}
 
-\section{Contributions}
+\subsection{Future Work}
+\label{sss:future_work}
 
-\section{Acknowledgements}
+\subsection{Conclusion}
+\label{sss:conclusion}
+
 
 \section{Appendix}
 
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+        qnet/.style={draw, rounded corners, fill=blue!20, minimum width=1.2cm, minimum height=1.2cm},
+        module/.style={draw, rounded corners, fill=purple!20, minimum width=1.2cm, minimum height=1.2cm},
+        action/.style={draw, rounded corners, fill=orange!30, minimum width=1.2cm, minimum height=1.2cm},
+        state/.style={draw, rounded corners, fill=green!20, minimum width=1.2cm, minimum height=1.2cm},
+        arrow/.style={->, thick, >=Stealth},
+        every node/.style={font=\scriptsize}
+      ]
+        % Vertical lines
+        \draw[thick] (0.8,0) -- (0.8,2.4);
+        \draw[thick] (1.6,0) -- (1.6,2.4);
+        % Horizontal lines
+        \draw[thick] (0,0.8) -- (2.4,0.8);
+        \draw[thick] (0,1.6) -- (2.4,1.6);
+        
+        % Xs and Os
+        \node at (0.4, 2) {X};
+        \node at (1.2, 2) {O};
+        \node at (2, 2) {};
+        \node at (0.4, 1.2) {O};
+        \node at (1.2, 1.2) {};
+        \node at (2, 1.2) {O};
+        \node at (0.4, 0.4) {X};
+        \node at (1.2, 0.4) {};
+        \node at (2, 0.4) {};
+
+        \node[state] (state) at (4,1.2) {
+            $\begin{bmatrix}
+            s_1 = 1 \\ s_2 = -1 \\ s_3 = 0 \\ s_4 = -1 \\ s_5 = 0 \\ s_6 = -1 \\ s_7 = 1 \\ s_8 = 0 \\ s_9 = 0
+            \end{bmatrix}$
+        };
+        \draw[arrow] (2.4,1.2) -- (state);
+
+        \begin{scope}[shift={(6.5, 2)}]
+            % Box and title
+            \node[draw, rounded corners, thick, fill=blue!20, fit={(0, -1.6) (1.6, 0)}, inner sep=0.4cm, label={[yshift=-0.4cm]above:Q-Network}] (box) {};
+            
+            % Input layer
+            \foreach \i in {1, 2} {
+                \node[circle, draw, fill=green!20, minimum size=0.3cm] (input\i) at (0, -\i*0.4) {};
+            }
+            \node at (0, -1.2) {$\vdots$};
+            \node[circle, draw, fill=green!20, minimum size=0.3cm] (input3) at (0, -1.6) {};
+            
+            % Hidden layer
+            \foreach \i in {1, 2} {
+                \node[circle, draw, fill=purple!20, minimum size=0.3cm] (hidden\i) at (0.8, -\i*0.4-0.2) {};
+            }
+            
+            % Output layer
+            \node[circle, draw, fill=orange!30, minimum size=0.3cm] (output) at (1.6, -0.8) {};
+            
+            % Connections
+            \foreach \i in {1, 2, 3} {
+                \foreach \j in {1, 2} {
+                    \draw[->, thick] (input\i) -- (hidden\j);
+                }
+            }
+            \foreach \i in {1, 2} {
+                \draw[->, thick] (hidden\i) -- (output);
+            }
+        \end{scope}
+        \draw[arrow] (state) -- (box);
+
+        \node[action] (action) at (10, 1.2) {Action};
+
+        \draw[arrow] (box) -- (action);
+        
+    \end{tikzpicture}
+    \caption{Illustration of a Q-Network processing a Tic-Tac-Toe board state.}
+    \label{fig:qnetwork_tictactoe}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+
+    % ANN
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \begin{tikzpicture}[scale=0.8,
+            input/.style={circle,draw=blue!50,fill=blue!20,thick,minimum size=1.2em},
+            hidden/.style={circle,draw=black!60,fill=black!10,thick,minimum size=1.2em},
+            output/.style={circle,draw=red!70,fill=red!20,thick,minimum size=1.2em}
+        ]
+            % Input Layer
+            \foreach \i in {1,...,3}
+                \node[input] (I\i) at (0,-\i) {};
+
+            % Hidden Layer
+            \foreach \i in {1,...,4}
+                \node[hidden] (H\i) at (2,-\i+0.5) {};
+
+            % Output Layer
+            \foreach \i in {1,...,2}
+                \node[output] (O\i) at (4,-\i-0.5) {};
+
+            % Connections
+            \foreach \i in {1,...,3}
+                \foreach \j in {1,...,4}
+                    \draw[->] (I\i) -- (H\j);
+
+            \foreach \i in {1,...,4}
+                \foreach \j in {1,...,2}
+                    \draw[->] (H\i) -- (O\j);
+        \end{tikzpicture}
+        \caption{Fully Connected ANN}
+    \end{subfigure}
+    \hfill
+
+    % CNN
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+            \begin{tikzpicture}[
+                image/.style={draw, rounded corners, fill=blue!20, minimum width=2.5cm, minimum height=2.5cm},
+                filter/.style={draw, thick, fill=red!20, minimum width=1cm, minimum height=1cm},
+                feature/.style={draw, thick, fill=green!20, minimum width=1cm, minimum height=2cm},
+                ann/.style={draw, thick, fill=purple!20, circle, minimum size=1cm},
+                arrow/.style={->, thick, >=Stealth},
+                every node/.style={font=\small}
+            ]
+
+            % Nodes
+            \node[image] (input) at (0, 0) {\includegraphics[width=2.5cm]{example-image}};
+            \node[filter] (filter) at (0, -2.5) {};
+            \node[feature] (feature) at (0, -5) {};
+            \node[ann] (ann) at (0, -7.5) {NN};
+
+            % Labels
+            \node[right] at (input.east) {28x28 Image};
+            \node[right] at (filter.east) {3x3 Filter};
+            \node[right] at (feature.east) {Pooled Features};
+            \node[right] at (ann.east) {Neural Network};
+
+            % Arrows
+            \draw[arrow] (input) -- (filter);
+            \draw[arrow] (filter) -- (feature);
+            \draw[arrow] (feature) -- (ann);
+
+            \end{tikzpicture}
+            \caption{Convolutional Neural Network (CNN)}
+    \end{subfigure}
+    \hfill
+
+    % GNN
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+            \begin{tikzpicture}[
+                node/.style={circle, draw, fill=orange!30, minimum size=1cm},
+                message/.style={draw, thick, fill=blue!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
+                aggregate/.style={draw, thick, fill=green!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
+                arrow/.style={->, thick, >=Stealth},
+                doublearrow/.style={<->, dotted, thick, >=Stealth},
+                every node/.style={font=\small}
+            ]
+
+            % Nodes
+            \node[node] (A) at (0, 0) {A};
+            \node[node] (B) at (2, 1.5) {B};
+            \node[node] (C) at (2, -1.5) {C};
+            \node[node] (D) at (4, 0) {D};
+
+            % Edges
+            \draw[doublearrow] (A) -- (B);
+            \draw[doublearrow] (A) -- (C);
+            \draw[doublearrow] (B) -- (D);
+            \draw[doublearrow] (C) -- (D);
+
+            % Message Passing
+            \node[message] (msg) at (2, -3) {Message Passing};
+            \draw[arrow] (C) -- (msg);
+            \draw[arrow] (A) -- (msg);
+            \draw[arrow] (D) -- (msg);
+
+            % Aggregation
+            \node[aggregate] (agg) at (2, -4.5) {Aggregation};
+            \draw[arrow] (msg) -- (agg);
+            % Pooling
+            \node[aggregate] (pooling) at (2, -6) {Pooling};
+            \draw[arrow] (agg) -- (pooling);
+            
+
+            % Output
+            \node[node, fill=purple!30] (output) at (2, -7.5) {NN};
+            \draw[arrow] (pooling) -- (output);
+            \end{tikzpicture}
+            \caption{Graph Neural Network (GNN) with Message Passing and Aggregation Steps}
+    \end{subfigure}
+
+    \caption{Simplified visual comparison of common neural network architectures}
+\end{figure}
 
 
 
