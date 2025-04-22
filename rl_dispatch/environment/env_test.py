@@ -9,6 +9,9 @@ problems_path = 'data/problems/'
 solutions_path = 'data/solutions/'
 problem_files = [f for f in os.listdir(problems_path) if f.endswith('.json')]
 
+max_steps = 10000  # Adjust as needed
+max_time = 300 # Adjust as needed
+
 for instance_path in problem_files:
     input_path = problems_path + instance_path
     data = load_data_file(input_path)
@@ -18,7 +21,7 @@ for instance_path in problem_files:
     obs, _ = env.reset()
     env.render(mode='human')
 
-    max_steps = 10000  # Adjust as needed
+    
     start_time = time.time()
     for i in range(max_steps):  # Arbitrary number of steps for demonstration
         print(f"Instance: {instance_path}, Step: {i}")
@@ -40,8 +43,8 @@ for instance_path in problem_files:
         
         ran_time = time.time() - start_time
 
-        if ran_time > 30:  # Break if runtime exceeds 30 seconds
-            print(f"Runtime exceeded 30 seconds for {instance_path}. Breaking.")
+        if ran_time > max_time:  # Break if runtime exceeds 30 seconds
+            print(f"Runtime exceeded {max_time} seconds for {instance_path}. Breaking.")
             break
                 
 
