@@ -67,7 +67,7 @@ def train_double_dqn_agent(data, max_episodes:int=500, batch_size:int = 32, save
                 avg_rewards.append(avg_reward)
                 
                 # Plot results
-                # plot_results(save_episodes, avg_losses, avg_rewards)
+                plot_results(save_episodes[:-1], avg_losses, avg_rewards)
                 
                 # Clear individual losses and rewards
                 agent.losses.clear()
@@ -97,7 +97,7 @@ def plot_results(save_episodes:list, avg_losses:list, avg_rewards:list):
     plt.savefig(f'results/results_save.png')
     plt.close()
 
-input_path = 'data/problems/line3_1.json'
+input_path = 'data/problems/toy_ex_t1_w4.json'
 data = load_data_file(input_path)
 checkpoint_path = 'model_saves/checkpoint_save.pth'
 train_double_dqn_agent(data)

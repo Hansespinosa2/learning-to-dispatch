@@ -259,24 +259,39 @@ where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is t
 \begin{figure}
     \centering
     \begin{tikzpicture}[
-        node/.style={draw,text width=2.5cm, align=center,rounded corners, fill=blue!20, minimum width=1.5cm, minimum height=1cm},
+        node/.style={circle, draw, fill=blue!20, minimum size=1.2cm, align=center},
         edge/.style={->, thick},
         resource/.style={draw, rounded corners, fill=orange!30, minimum width=1.5cm, minimum height=1cm},
         every node/.style={font=\small}
     ]
         % Nodes
-        \node[node] (op0) at (0, 0) {op 0 \\ $\delta = 5$ \\ $r_1$};
-        \node[node] (op1) at (3, 1.5) {op 1 \\ $\delta = 0$ \\ $r_1, r_2$};
-        \node[node] (op2) at (3, -1.5) {op 2 \\ $\delta = 0$ \\ $r_1, r_3$};
-        \node[node] (op3) at (6, 0) {op 3 \\ $\delta = 5$ \\ $r_4$};
-        \node[node] (op7) at (9, 0) {op 7 \\ $\delta = 0$ \\ $t \leq 10$};
+        \node[node] (op0) at (0, 0) {op 0 \\ $\delta = 5$ \\ $[]$};
+        \node[node] (op1) at (3, 1.5) {op 1 \\ $\delta = 0$ \\ $r_2$};
+        \node[node] (op2) at (3, -1.5) {op 2 \\ $\delta = 0$ \\ $r_1, r_2$};
+        \node[node] (op3) at (6, 0) {op 3 \\ $\delta = 5$ \\ $r_1$};
+        \node[node] (op4) at (9, 0) {op 4 \\ $\delta = 0$ \\ $[]$};
 
         % Edges
         \draw[edge] (op0) -- (op1);
         \draw[edge] (op0) -- (op2);
         \draw[edge] (op1) -- (op3);
         \draw[edge] (op2) -- (op3);
-        \draw[edge] (op3) -- (op7);
+        \draw[edge] (op3) -- (op4);
+
+        % Additional DAG
+        \node[node] (op0_new) at (0, -4) {op 0 \\ $\delta = 0$ \\ $[]$};
+        \node[node] (op1_new) at (3, -4) {op 1 \\ $\delta = 0$ \\ $r_1$};
+        \node[node] (op2_new) at (6, -4) {op 2 \\ $\delta = 0$ \\ $[]$};
+
+        % Edges
+        \draw[edge] (op0_new) -- (op1_new);
+        \draw[edge] (op1_new) -- (op2_new);
+
+        \draw[<->, red, thick] (op1) -- (op2);
+        \draw[<->, red, thick] (op3) -- (op2);
+        \draw[<->, red, thick] (op1_new) -- (op2);
+        \draw[<->, red, thick] (op1_new) -- (op3);
+
     \end{tikzpicture}
     \caption{Example Train Operation DAG with resource and duration constraints.}
     \label{fig:train_dag}
@@ -293,15 +308,15 @@ where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is t
 \subsection{Action Space}
 \label{sss:action_space}
 
-\section{Preliminary Agent Results}
-\label{sse:results}
+% \section{Preliminary Agent Results}
+% \label{sse:results}
 
-\subsection{Deep Graph Q-Network Agent}
-\label{sss:agent}
+% \subsection{Deep Graph Q-Network Agent}
+% \label{sss:agent}
 
 
-\subsection{Solutions}
-\label{sss:solutions}
+% \subsection{Solutions}
+% \label{sss:solutions}
 
 
 \section{Conclusion and Future Work}
@@ -508,6 +523,51 @@ where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is t
     \end{subfigure}
 
     \caption{Simplified visual comparison of common neural network architectures}
+\end{figure}
+
+\begin{figure}
+    \begin{tikzpicture}[>=Stealth, node distance=2cm and 2cm]
+
+        % Styles
+        \tikzstyle{op} = [draw, minimum width=1.8cm, minimum height=1.2cm]
+        \tikzstyle{circleop} = [op, circle]
+        \tikzstyle{redarrow} = [->, red, thick]
+        \tikzstyle{blackarrow} = [->, thick]
+        
+        % Train A
+        \node[op] (a0) {op 0\\$r = [\,]$};
+        \node[circleop, above right=of a0] (a1) {op 1\\$r = [\,]$};
+        \node[circleop, below right=of a0] (a2) {op 2\\$r = [\,]$};
+        \node[circleop, right=of a1] (a3) {op 3\\$r = 1$};
+        \node[op, right=of a3] (a4) {op 4\\$r = [\,]$};
+        
+        % Arrows for Train A
+        \draw[blackarrow] (a0) -- (a1);
+        \draw[blackarrow] (a0) -- (a2);
+        \draw[blackarrow] (a1) -- (a3);
+        \draw[blackarrow] (a3) -- (a4);
+        
+        % Red connections (Train A feedback or dependencies)
+        \draw[redarrow] (a1) -- (a2);
+        \draw[redarrow] (a2) -- (a1);
+        \draw[redarrow] (a2) -- (a3);
+        \draw[redarrow] (a2) -- (a2);
+        
+        % Train B
+        \node[op, below left=4cm and 2cm of a2] (b0) {op 0\\$r = [\,]$};
+        \node[circleop, right=of b0] (b1) {op 1\\$r = 1$};
+        \node[op, right=of b1] (b2) {op 2\\$r = [\,]$};
+        
+        % Arrows for Train B
+        \draw[blackarrow] (b0) -- (b1);
+        \draw[blackarrow] (b1) -- (b2);
+        
+        % Labels
+        \node[above left=0.5cm of a0] {\textbf{Train A}};
+        \node[above left=0.5cm of b0] {\textbf{Train B}};
+        
+    \end{tikzpicture}
+    
 \end{figure}
 
 
