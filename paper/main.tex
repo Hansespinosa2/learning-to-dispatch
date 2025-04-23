@@ -66,8 +66,7 @@ To provide a thorough understanding of the approach, the remainder of this paper
 In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem, reinforcement learning, and graph neural networks.
 These concepts are then reinforced in a discussion of recent research that inspired this work.
 Section~\ref{sse:formulation} details the proposed formulation, introducing Train Operation Graphs (\ref{sss:train_ops}), Resource Conflict Graphs (\ref{sss:resource_conflicts}), and the state and action spaces (\ref{sss:state_space}, \ref{sss:action_space}). 
-In Section~\ref{sse:discussion}, preliminary results are showcased from a graph-based Deep Q-Network (DQN) agent followed by a discussion of the limitations behind the current DQN implementation.
-Finally, Section~\ref{sse:conclusion} concludes this work and discusses future directions for scaling and refining the framework.
+Finally, Section~\ref{sse:discussion} preliminary results are showcased from a graph-based Deep Q-Network (DQN) agent followed by future directions for work.
 
 
 
@@ -295,13 +294,21 @@ Tackling the problem of influence maximization in social networks, GraMeR~\cite{
 
 Devailly et al.~\cite{gnndrl:Devailly_2022} introduced IG-RL, an inductive graph reinforcement learning approach for large-scale traffic signal control. 
 By utilizing GNNs, IG-RL efficiently manages massive traffic networks, enabling scalable and adaptive control strategies. 
-Similarly, Agasucci et al.~\cite{gnndrl:agasucci} proposed a DRL-based formulation for the train dispatching problem, although their approach is constrained by the specificity of the data source used.
+Similarly, Agasucci et al.~\cite{gnndrl:agasucci} introduced a DRL-based approach to the train dispatching problem, though their method is limited by the specificity of the dataset employed.
 
 In summary, GNNs offer a robust framework for learning on graph-structured data, significantly augmenting the set of possible reinforcement learning applications.
 The ability of GNNs to learn from dynamic graph-structured data is a core concept behind this formulation.
 
 \section{Formulation}
 \label{sse:formulation}
+The proposed formulation introduces a approach to the TDP by leveraging both graph-based representations and reinforcement learning techniques. 
+By modeling train operations as Directed Acyclic Graphs (DAGs) and resource conflicts as Resource Conflict Graphs (RCGs), this formulate aims to capture the intricate dependencies and constraints inherent to railway systems. 
+The integration of Graph Neural Networks (GNNs) enables efficient processing of these graph structures, while the reinforcement learning agent learns to make optimal dispatching decisions dynamically. 
+
+The remainder of this section is organized as follows. 
+Subsection~\ref{sss:train_ops} introduces the concept of Train Operation Graphs in the DISPLIB format, detailing their structure and role in representing train operations and constraints. 
+Subsection~\ref{sss:resource_conflicts} describes the Resource Conflict Graphs, which model resource-sharing conflicts between trains. Subsection~\ref{sss:state_space} defines the state space, highlighting how graph-based representations encode the environment's current state. 
+Finally, Subsection~\ref{sss:action_space} outlines the action space, specifying the set of actions available to the reinforcement learning agent for decision-making.
 
 \subsection{Train Operation Graphs}
 \label{sss:train_ops}
@@ -441,14 +448,12 @@ Each action is represented as a discrete choice, and the agent's policy maps the
 
 
 
-\section{Discussion}
+
+\section{Discussion and Future Work}
 \label{sse:discussion}
-\subsection{Preliminary Agent Results}
 
-\subsection{Implementation Limitations}
-
-\section{Conclusion and Future Work}
-\label{sse:conclusion}
+\subsection{Discussion}
+\label{sss:discussion}
 
 \subsection{Future Work}
 \label{sss:future_work}
@@ -472,13 +477,12 @@ Extending the framework to these applications would require domain-specific modi
 \subsection{Conclusion}
 \label{sss:conclusion}
 
-This honors thesis introduces a proof-of-concept reinforcement learning framework for the Train Dispatching Problem, emphasizing the formulation and potential of graph-based representations and deep learning techniques. 
-By framing the problem as a Markov Decision Process and leveraging Graph Neural Networks, this work provides a foundational approach to train dispatching that is both scalable and extensible.
+This honors thesis introduces a proof-of-concept reinforcement learning framework for the Train Dispatching Problem alongside preliminary results, emphasizing the formulation and potential of graph-based representations and deep learning techniques. 
+By framing the problem as a Markov Decision Process and leveraging Graph Neural Networks, this work provides a foundational approach to train dispatching in the DISPLIB format that is both scalable and extensible.
 
 As a formulation-focused study, this thesis aims to inspire future research in applying reinforcement learning to complex scheduling and resource allocation problems. 
 Future efforts should prioritize refining the action space, developing tailored graph reinforcement learning algorithms, and exploring applications in other domains. 
 These advancements will build upon the groundwork laid here, contributing to the broader understanding and development of intelligent transportation systems.
-
 
 
 \section{Appendix}
