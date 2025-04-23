@@ -6,6 +6,7 @@
 \usepackage{amsmath}
 \usepackage{tikz}
 \usepackage{subcaption}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 \usetikzlibrary{arrows.meta, positioning, fit}
 
 \definecolor{uf_blue}{RGB}{17,27, 150}
@@ -41,32 +42,32 @@ Dispatching decisions must be made continuously and quickly, especially in high-
 
 % Why does the problem exist?
 Despite significant technological advances in other areas of transportation and logistics, train dispatching remains heavily reliant on human decision-makers or static rule-based systems. 
-This is largely because the problem is highly combinatorial: at any given moment, there are exponentially many possible sequences of decisions that can lead to different network outcomes. 
+This is largely because the problem is highly combinatorial: even with the smallest problems, there can be exponentially many possible sequences of decisions. 
 Human dispatchers bring experience and intuition to these situations, but they are limited in how much information they can process and how consistently they can manage large-scale disruptions or optimize traffic flow over time.
 
 % Why solve this problem?
-Improving train dispatching systems has the potential to reduce passenger delays, minimize dispatching errors, and prevent network deadlocks—situations where no train can proceed without violating safety or scheduling constraints. 
-Optimized dispatching can also improve energy efficiency and capacity utilization, making rail transport more competitive and sustainable. 
-In dense urban transit systems or busy freight corridors, even marginal improvements in dispatching can lead to significant gains in overall network performance and reliability.
+Improving train dispatching systems has the potential to reduce passenger delays, minimize dispatching errors, and prevent deadlocks—where no train can proceed without violating physical, safety, or scheduling constraints. 
+By optimizing dispatching we can also improve energy efficiency and capacity utilization, making rail transport more sustainable. 
+In dense urban transit systems or busy freight corridors, even marginal improvements in dispatching can lead to significant gains in resource consumption or time savings.
 
 % Why solve with RL?
-Reinforcement Learning (RL) offers a new approach to tackling the TDP by framing it as a sequential decision-making problem, where an agent learns to make dispatching decisions through interactions with a simulated environment. 
-RL is particularly well-suited for problems with delayed consequences, dynamic environments, and large state spaces—all of which characterize train dispatching. 
-With recent successes in games, robotics, and supply chain optimization, RL is emerging as a promising tool for learning policies that outperform hand-crafted heuristics in complex, real-world systems.
+Reinforcement Learning (RL) offers a new approach to tackling the TDP by framing it as a sequential decision-making problem.
+By formulating the TDP as an RL problem, an agent learns to make dispatching decisions through interactions with a simulated environment, similar to how people learn through trial and error. 
+RL is an active area of research particularly well-suited for problems with delayed consequences, dynamic environments, and large state spaces—all of which apply to train dispatching. 
 
 % Project scope.
-This paper focuses on the formulation of the Train Dispatching Problem for RL-based approaches, rather than on developing a fully trained solution. 
-We emphasize how the problem can be encoded as an RL task using graph structures to represent rail networks, define meaningful states, actions, and rewards, and manage constraints inherent to railway systems. 
-Our goal is to provide a robust and extensible framework that future researchers and practitioners can build upon when applying RL methods to train dispatching and related infrastructure scheduling problems.
+This work focuses on the formulation of the Train Dispatching Problem for RL-based approaches, rather than on the algorithm implementation. 
+This thesis emphasizes how the problem can be encoded as an RL task using graph structures to represent rail networks, define meaningful states, actions, and rewards, and manage constraints inherent to railway systems. 
+The goal is to provide a robust and extensible framework that future researchers and practitioners can build upon when applying RL methods to train dispatching and related infrastructure scheduling problems.
+As demonstrated in recent research on applying reinforcement learning to car and pedestrian-level traffic, combing RL and graph structures can yield powerful results, so long as the algorithms and models are capable of modeling the underlying graphs \cite{gnndrl:Devailly_2022}.
 
 % Paper Outline
-To provide a thorough understanding of our approach, the remainder of this paper is organized as follows. 
-In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem and its mixed-integer programming (MIP) formulation, as well as the DISPLIB benchmark format (\ref{sss:train}). 
-We then outline key reinforcement learning concepts, including Markov Decision Processes (\ref{sss:reinforcement_learning}) and Deep Q-Networks, highlighting their relevance to sequential decision-making in dispatching tasks. This is followed by an introduction to Graph Neural Networks (\ref{sss:gnn}), which are critical for representing the structure of railway networks. 
-Section~\ref{sse:related_work} provides a review of related literature, including recent RL applications to combinatorial scheduling, graph-based approaches, and prior work on train dispatching. 
-Section~\ref{sse:formulation} details our proposed formulation, introducing Train Operation Graphs (\ref{sss:train_ops}), Resource Conflict Graphs (\ref{sss:resource_conflicts}), and the definitions of our state and action spaces (\ref{sss:state_space}, \ref{sss:action_space}). 
-In Section~\ref{sse:results}, we demonstrate preliminary results from our Deep Graph Q-Network agent (\ref{sss:agent}), evaluating its performance on sample instances and visualizing its learned strategies (\ref{sss:solutions}). 
-Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses future directions for scaling and refining the framework (\ref{sss:future_work}, \ref{sss:conclusion}).
+To provide a thorough understanding of the approach, the remainder of this paper is organized as follows. 
+In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem, reinforcement learning, and graph neural networks.
+These concepts are then reinforced in a discussion of recent research that inspired this work.
+Section~\ref{sse:formulation} details the proposed formulation, introducing Train Operation Graphs (\ref{sss:train_ops}), Resource Conflict Graphs (\ref{sss:resource_conflicts}), and the state and action spaces (\ref{sss:state_space}, \ref{sss:action_space}). 
+In Section~\ref{sse:discussion}, preliminary results are showcased from a graph-based Deep Q-Network (DQN) agent followed by a discussion of the limitations behind the current DQN implementation.
+Finally, Section~\ref{sse:conclusion} concludes this work and discusses future directions for scaling and refining the framework.
 
 
 
@@ -76,6 +77,26 @@ Finally, Section~\ref{sse:conclusion} outlines our conclusions and discusses fut
 \label{sss:train}
 % This should cover the MIP formulation and the general outline of the problem
 % This should also cover the DISPLIB data format and all that.
+% Reinforcement Learning (RL) has demonstrated significant potential in solving complex, real-world problems, achieving notable successes in domains such as games \cite{drl:rl_games_industry}, robotics \cite{drl:robotics_review}, and supply chain optimization \cite{drl:rl_supply_chain}.
+The TDP is a well-known example of a large-scale combinatorial optimization problem, characterized by its complexity and the need for efficient decision-making under constraints. 
+This problem becomes especially critical in dense networks with high traffic volume, where suboptimal dispatching can lead to cascading delays, congestion, or even deadlocks.
+Traditional approaches typically formulate TDP as a Mixed-Integer Programming (MIP) problem, where binary decision variables represent route allocations, resource occupations (e.g., track segments), and train movements over time. 
+Constraints in this formulation encode physical infrastructure limitations, train precedence relations, safety buffers, and scheduling windows \cite{train:LAMORGESE2013559}. 
+While MIP solvers can produce high-quality solutions, they are often limited by scalability, especially under tight time constraints or when dealing with real-time disruptions.
+Generally, the TDP presents a significant challenge for existing algorithms due to: \begin{itemize} \item Its high-dimensional decision space and tight operational constraints \item The need for fast and adaptive solutions under uncertainty \item The opportunity to drastically improve throughput, punctuality, and network resilience. \end{itemize}
+
+In practice, the TDP is currently managed either by human dispatchers or by static rule-based systems. 
+Human expertise plays a crucial role in adapting to disruptions or prioritizing certain services, but manual dispatching lacks scalability and consistency. 
+Rule-based systems, while automated, are inflexible and often suboptimal when network conditions change. 
+These limitations open the door for machine learning-based methods, particularly those capable of learning adaptive and scalable policies from data and interaction.
+
+The DISPLIB 2025 Train Dispatching Competition, which inspires this work, provides a standardized and open-source benchmark dataset for evaluating train dispatching algorithms \cite{train:DISPLIB2025}. 
+DISPLIB scenarios model complex networks and real-world operational constraints, enabling rigorous benchmarking. 
+Each instance in DISPLIB specifies a railway topology, time constraint information, and resource usage requirements. 
+The formulation presented in Section~\ref{sse:formulation} is deeply integrated with this standardized dataset.
+
+Given the current lack of RL-based solutions and the standardized dataset provided by the DISPLIB competition, the TDP stands as a compelling application domain for Reinforcement Learning (RL) and Graph-based learning models.
+
 \subsection{Deep Reinforcement Learning}
 \label{sss:reinforcement_learning}
 % Cover Markov Decision Processes
@@ -352,16 +373,13 @@ The action space in this formulation consists of three primary actions that the 
 
 Each action is represented as a discrete choice, and the agent's policy maps the current state of the environment to one of these actions. The design of this action space ensures that the agent has the flexibility to make scheduling decisions dynamically while adhering to the constraints of the problem.
 
-% \section{Preliminary Agent Results}
-% \label{sse:results}
-
-% \subsection{Deep Graph Q-Network Agent}
-% \label{sss:agent}
 
 
-% \subsection{Solutions}
-% \label{sss:solutions}
+\section{Discussion}
+\label{sse:discussion}
+\subsection{Preliminary Agent Results}
 
+\subsection{Implementation Limitations}
 
 \section{Conclusion and Future Work}
 \label{sse:conclusion}
