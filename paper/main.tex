@@ -36,7 +36,7 @@
 \label{sse:introduction}
 
 % What is the problem?
-The Train Dispatching Problem (TDP) concerns the real-time management of train movements across a rail network, ensuring safe and efficient use of infrastructure. 
+The Train Dispatching Problem (TDP), widely recognized as a classic and challenging problem in Operations Research (OR), concerns the real-time management of train movements across a rail network.
 This involves deciding when and where trains should move, stop, or wait, based on factors such as schedules, track availability, and priority rules. 
 Dispatching decisions must be made continuously and quickly, especially in high-traffic networks, making the problem both operationally critical and computationally challenging.
 
@@ -57,17 +57,18 @@ RL is an active area of research particularly well-suited for problems with dela
 
 % Project scope.
 This work focuses on the formulation of the Train Dispatching Problem for RL-based approaches, rather than on the algorithm implementation. 
-This thesis emphasizes how the problem can be encoded as an RL task using graph structures to represent rail networks, define meaningful states, actions, and rewards, and manage constraints inherent to railway systems. 
+This thesis emphasizes how the problem can be encoded as an RL task using graph structures to represent rail networks and their many constraints. 
 The goal is to provide a robust and extensible framework that future researchers and practitioners can build upon when applying RL methods to train dispatching and related infrastructure scheduling problems.
-As demonstrated in recent research on applying reinforcement learning to car and pedestrian-level traffic, combing RL and graph structures can yield powerful results, so long as the algorithms and models are capable of modeling the underlying graphs \cite{gnndrl:Devailly_2022}.
+As demonstrated in recent research on applying RL to car and pedestrian-level traffic, combing RL and graph structures can yield powerful results, so long as the algorithms and models are capable of interpreting the underlying graphs \cite{gnndrl:Devailly_2022}.
 
 % Paper Outline
 To provide a thorough understanding of the approach, the remainder of this paper is organized as follows. 
-In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem, reinforcement learning, and graph neural networks.
+In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem, Reinforcement Learning, and Graph Neural Networks.
 These concepts are then reinforced in a discussion of recent research that inspired this work.
 Section~\ref{sse:formulation} details the proposed formulation, introducing Train Operation Graphs (\ref{sss:train_ops}), Resource Conflict Graphs (\ref{sss:resource_conflicts}), and the state and action spaces (\ref{sss:state_space}, \ref{sss:action_space}). 
-Section~\ref{sse:results} presents the outcomes of implementing the proposed reinforcement learning framework for the Train Dispatching Problem. It highlights the design of the graph-based DQN agent, the reward function employed, and the limitations observed during experimentation.
-Finally, Section~\ref{sse:conclusion} preliminary results are showcased from a graph-based Deep Q-Network (DQN) agent followed by future directions for work.
+Section~\ref{sse:results} presents the results of implementing a preliminary graph-based Deep Q-Network (DQN) agent for the Train Dispatching Problem. 
+It highlights the design of the graph-based DQN agent, the reward function employed, and the limitations observed during experimentation.
+Finally, Section~\ref{sse:conclusion} concludes this thesis and highlights a few future directions for work.
 
 
 
@@ -80,12 +81,12 @@ Finally, Section~\ref{sse:conclusion} preliminary results are showcased from a g
 % Reinforcement Learning (RL) has demonstrated significant potential in solving complex, real-world problems, achieving notable successes in domains such as games \cite{drl:rl_games_industry}, robotics \cite{drl:robotics_review}, and supply chain optimization \cite{drl:rl_supply_chain}.
 The TDP is a well-known example of a large-scale combinatorial optimization problem, characterized by its complexity and the need for efficient decision-making under constraints. 
 This problem becomes especially critical in dense networks with high traffic volume, where suboptimal dispatching can lead to cascading delays, congestion, or even deadlocks.
-Traditional approaches typically formulate TDP as a Mixed-Integer Programming (MIP) problem, where binary decision variables represent route allocations, resource occupations (e.g., track segments), and train movements over time. 
+Traditional approaches typically formulate TDP as a Mixed-Integer Programming (MIP) problem, where binary decision variables represent route allocations, resource occupations (e.g., track segments), and train movements over time \cite{train:doi:10.1287/opre.2014.1327}. 
 Constraints in this formulation encode physical infrastructure limitations, train precedence relations, safety buffers, and scheduling windows \cite{train:LAMORGESE2013559}. 
-While MIP solvers can produce high-quality solutions, they are often limited by scalability, especially under tight time constraints or when dealing with real-time disruptions.
+While MIP solvers can produce high-quality solutions, they are often limited by scalability, especially under tight time constraints or when dealing with real-time disruptions \cite{train:Sch_licke_2025}.
 Generally, the TDP presents a significant challenge for existing algorithms due to: \begin{itemize} \item Its high-dimensional decision space and tight operational constraints \item The need for fast and adaptive solutions under uncertainty \item The opportunity to drastically improve throughput, punctuality, and network resilience. \end{itemize}
 
-In practice, the TDP is currently managed either by human dispatchers or by static rule-based systems. 
+In practice, the TDP is currently managed by human dispatchers using rule-based decision support systems to assist the scheduling process. 
 Human expertise plays a crucial role in adapting to disruptions or prioritizing certain services, but manual dispatching lacks scalability and consistency. 
 Rule-based systems, while automated, are quite inflexible and often suboptimal when conditions change. 
 These limitations open the door for machine learning-based methods, particularly those capable of learning scalable policies from data and interaction.
@@ -95,13 +96,13 @@ DISPLIB scenarios model complex networks and real-world operational constraints,
 Each instance in DISPLIB specifies a railway topology, time constraint information, and resource usage requirements. 
 The formulation presented in Section~\ref{sse:formulation} is deeply integrated with this standardized dataset.
 
-Given the current lack of RL-based solutions and the standardized dataset provided by the DISPLIB competition, the TDP stands as a compelling application domain for Reinforcement Learning (RL) and Graph-based learning models.
+Given the current lack of RL-based solutions and the standardized dataset provided by the DISPLIB competition, the TDP stands as a compelling application domain for RL and Graph-based learning models.
 
 \subsection{Deep Reinforcement Learning}
 \label{sss:reinforcement_learning}
 % Cover Markov Decision Processes
 % As well as DQN
-Deep Reinforcement Learning (DRL) is a subfield of machine learning that combines reinforcement learning (RL) with deep learning techniques to solve complex decision-making problems. 
+Deep Reinforcement Learning (DRL) is a subfield of machine learning that combines RL with deep learning techniques to solve complex decision-making problems. 
 RL focuses on training agents to make sequential decisions by interacting with an environment, receiving feedback in the form of rewards, and learning to maximize cumulative rewards over time. 
 Deep learning, on the other hand, enables the representation of high-dimensional data through neural networks, making it possible to handle complex state and action spaces.
 
@@ -124,7 +125,7 @@ An MDP is formally defined by the tuple $(S, A, P, R, \gamma)$, where:
 \end{itemize}
 
 In essence, an MDP is a process where the current state contains all the information necessary to determine the optimal action and its associated reward. 
-In reinforcement learning, this process is typically modeled as an interaction between an agent and an environment, governed by underlying dynamics. 
+In RL, this process is typically modeled as an interaction between an agent and an environment, governed by underlying dynamics. 
 At each timestep, the environment provides the current state $s_t$ to the agent, which selects an action $a_t$. 
 This action is then applied to the environment, which updates its state to $s_{t+1}$ and computes the corresponding reward $r_{t+1}$. 
 This iterative process is illustrated in Figure~\ref{fig:rl_framework}.
@@ -160,10 +161,12 @@ The goal in an MDP is to find a policy $\pi(a|s)$, which is a mapping from state
 G_t = \mathbb{E} \left[ \sum_{k=0}^\infty \gamma^k R(s_{t+k}, a_{t+k}) \right].
 \]
 
-MDPs are widely used in reinforcement learning to model environments where agents learn optimal policies through interaction and feedback.
+MDPs are widely used in RL to model environments where agents learn optimal policies through interaction and feedback.
 
 \subsubsection{Deep Q-Network}
-Deep Q-Networks (DQN) are a class of reinforcement learning algorithms that approximate the Q-value function using deep neural networks. The Q-value function, $Q(s, a)$, represents the expected cumulative reward of taking action $a$ in state $s$ and following the optimal policy thereafter. The DQN agent learns this function through experience replay and iterative updates.
+Deep Q-Networks (DQN) are a class of RL algorithms that approximate the Q-value function using deep neural networks. 
+The Q-value function, $Q(s, a)$, represents the expected cumulative reward of taking action $a$ in state $s$ and following the optimal policy thereafter. 
+The DQN agent learns this function through experience replay and iterative updates.
 
 The key components of a DQN agent are:
 
@@ -176,10 +179,10 @@ The key components of a DQN agent are:
     \delta = \left[ r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-) - Q(s_t, a_t; \theta) \right],
     \]
     where $\gamma$ is the discount factor.
-    \item \textbf{Exploration vs. Exploitation:} The agent balances exploration (choosing new actions to explore the environment) and exploitation (choosing actions to exploit what it already knows) using an $\epsilon$-greedy policy.
+    \item \textbf{Exploration vs. Exploitation:} The agent balances exploration (choosing new actions to explore the environment) and exploitation (choosing actions to exploit what it already knows).
 \end{itemize}
 
-The training process involves iteratively updating the Q-network's weights $\theta$ using gradient descent to minimize the TD error. 
+The training process involves iteratively updating the Q-network's weights $\theta$ using gradient descent to minimize the Temporal Difference (TD) error. 
 The learned Q-values guide the agent in selecting actions that maximize long-term rewards.
 For simpler tasks, a basic Q-network may suffice (such as a linear regression or heuristic model). 
 However, for complex problems like the TDP, more advanced neural network architectures are likely better suited to handle the challenges effectively.
@@ -202,7 +205,7 @@ The key components of GNNs include:
     \item \textbf{Pooling Layers:} For graph-level tasks, pooling layers summarize the entire graph into a fixed-size representation.
 \end{itemize}
 
-Graph Neural Networks (GNNs) can be thought of as the graph-based counterpart to Convolutional Neural Networks (CNNs) for images. 
+GNNs can be thought of as the graph-based counterpart to Convolutional Neural Networks (CNNs) for images. 
 GNNs effectively aggregate information from neighboring nodes and edges, enabling each node to build a representation that incorporates both its own features and the context provided by its local graph structure.
 They then apply a pooling operation to extract and summarize key patterns and trends from the data.
 This comparison is illustrated in Figure~\ref{fig:cnn_vs_gnn}
@@ -287,15 +290,16 @@ This comparison is illustrated in Figure~\ref{fig:cnn_vs_gnn}
 
 
 \subsubsection{Applications in Reinforcement Learning}
-GNNs have shown significant promise in reinforcement learning (RL) for tasks involving graph-structured environments. Munikoti et al.~\cite{gnndrl:munikoti2022challengesopportunitiesdeepreinforcement} provide a comprehensive review of how GNNs enhance RL by enabling agents to reason over relational data, such as traffic networks or social graphs. They highlight the ability of GNNs to generalize across varying graph sizes and structures.
+GNNs have shown significant promise in RL for tasks involving graph-structured environments. 
+Munikoti et al.~\cite{gnndrl:munikoti2022challengesopportunitiesdeepreinforcement} provide a comprehensive review of how GNNs can enhance RL by enabling agents to reason over relational data, such as traffic networks, infection models, or social graphs. 
+They highlight the ability of GNNs to generalize across varying graph sizes and structures.
 
-Graph Neural Networks (GNNs) have been successfully integrated with reinforcement learning (RL) to address complex graph-structured problems across various domains. 
+GNNs have been successfully integrated with RL to address complex graph-structured problems across various domains. 
 For example, Almasan et al.~\cite{gnndrl:ALMASAN2022184} applied GNNs to network routing, demonstrating their ability to optimize routing decisions in dynamic environments.
 Tackling the problem of influence maximization in social networks, GraMeR~\cite{gnndrl:munikoti2022gramergraphmetareinforcement} leverage GNNs combined with meta-reinforcement learning to learn transferable policies across diverse graph instances.
 
-Devailly et al.~\cite{gnndrl:Devailly_2022} introduced IG-RL, an inductive graph reinforcement learning approach for large-scale traffic signal control. 
-By utilizing GNNs, IG-RL efficiently manages massive traffic networks, enabling scalable and adaptive control strategies. 
-Similarly, Agasucci et al.~\cite{gnndrl:agasucci} introduced a DRL-based approach to the train dispatching problem, though their method is limited by the specificity of the dataset employed.
+Devailly et al.~\cite{gnndrl:Devailly_2022} introduced IG-RL, an inductive graph reinforcement learning approach for large-scale traffic signal control which enables scalable and adaptive control strategies. 
+Similarly to this thesis, Agasucci et al.~\cite{gnndrl:agasucci} introduced a DRL-based approach to the train dispatching problem, though their method is limited by the specificity of the dataset employed.
 
 In summary, GNNs offer a robust framework for learning on graph-structured data, significantly augmenting the set of possible reinforcement learning applications.
 The ability of GNNs to learn from dynamic graph-structured data is a core concept behind this formulation.
@@ -314,7 +318,7 @@ Finally, Subsection~\ref{sss:action_space} outlines the action space, specifying
 \subsection{Train Operation Graphs}
 \label{sss:train_ops}
 
-The Train Operation Directed Acyclic Graph (DAG) format provides a structured representation of train operations and their constraints. 
+The Train Operation DAG format provides a structured representation of train operations and their constraints. 
 Conceptually, each train is modeled as a DAG, called the operations graph, where each node represents a possible operation the train can choose and each edge represents the transitions between operation.
 The primary components of the operations graphs are outlined as follows:
 
@@ -375,16 +379,17 @@ It then proceeds to operation 3, which has a minimum duration of 5, before movin
     \label{fig:train_dag}
 \end{figure}
 
+\subsubsection{Objective Function}
+The DISPLIB competition defines the objective as minimizing delay costs, calculated as:
+\[
+v_i = c \cdot \max(0, t - t_{\text{threshold}}) + d \cdot H(t - t_{\text{threshold}})
+\]
+where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is the Heaviside step function \cite{train:DISPLIB2025}.
+Alternative objective functions can also be considered, such as minimizing the total time required for all trains to complete their respective exit operations.
+
 The Train Operation Graphs serve as the foundation for modeling the sequential decision-making process for one train.
 However, these graphs alone are insufficient to capture the interactions and conflicts between multiple trains sharing the same resources. 
 
-\subsubsection{Resources and Constraints}
-Resources represent entities (e.g., track sections) that cannot be shared between trains simultaneously. 
-Operations requiring the same resource must satisfy the following:
-\begin{itemize}
-    \item The \textbf{end event} of one operation must precede the \textbf{start event} of the next.
-    \item The \textbf{release time} of the resource must be respected.
-\end{itemize}
 
 \subsubsection{Feasibility Conditions}
 A solution is feasible if:
@@ -396,18 +401,18 @@ A solution is feasible if:
     \item Resource constraints are satisfied across all trains.
 \end{enumerate}
 
-\subsubsection{Objective Function}
-The DISPLIB competition defines the objective as minimizing delay costs, calculated as:
-\[
-v_i = c \cdot \max(0, t - t_{\text{threshold}}) + d \cdot H(t - t_{\text{threshold}})
-\]
-where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is the Heaviside step function \cite{train:DISPLIB2025}.
 
-Alternative objective functions can also be considered, such as minimizing the total time required for all trains to complete their respective exit operations.
-
+\subsubsection{Resources and Constraints}
+Resources represent entities (e.g., track sections) that cannot be shared between trains simultaneously. 
+Operations requiring the same resource must satisfy the following:
+\begin{itemize}
+    \item The \textbf{end event} of one operation must precede the \textbf{start event} of the next.
+    \item The \textbf{release time} of the resource must be respected.
+\end{itemize}
+To abstract resource labels from individual operations, this formulation introduces a new type of edge to represent resource conflicts between operations. 
 \subsection{Resource Conflict Graphs}
 \label{sss:resource_conflicts}
-To abstract resource labels from individual operations, this formulation introduces a new type of edge to represent resource conflicts between operations. 
+A Resource Conflict Graph abstracts resources as edges, rather than treating resources as attributes of individual operations.
 These edges connect operations that share the same resource, transforming the disjointed train operation DAGs into a unified graph structure. 
 
 Figure~\ref{fig:train_rcg} illustrates this concept, expanding on the toy example in Figure~\ref{fig:train_dag} with two trains. 
@@ -454,14 +459,14 @@ Such a representation enables the reinforcement learning agent to reason about b
         \draw[<->, red, thick] (op1_new) -- (op3);
 
     \end{tikzpicture}
-    \caption{Example Train Operation DAG with resource and duration constraints.}
+    \caption{Example "super graph" with two trains, Train A and Train B. These individual operation graphs are connected by their resource conflicts, signified by red edges.}
     \label{fig:train_rcg}
 \end{figure}
 
 \subsection{State Space}
 \label{sss:state_space}
 
-In this formulation, the state space is represented as a Directed Acyclic Graph (DAG) composed of unconnected operation graphs. 
+In this formulation, the state space is represented as a "super graph" composed of operation graphs connected by their resource conflict edges. 
 Each node in the graph corresponds to an operation and is characterized by a feature vector that captures relevant attributes of the operation. 
 The node feature vector includes the following parameters:
 
@@ -472,16 +477,16 @@ The node feature vector includes the following parameters:
     \item $x_4$: Start upper bound of the operation ($10^6$ if not present).
     \item $x_5$: Minimum duration of the operation (0 if not present).
     \item $x_6$: Can pick (1 if the operation has not been picked and can be picked, 0 otherwise).
-    \item $x_7$: Currently picked (1 if a train has selected this operation and no successors exist, 0 otherwise).
+    \item $x_7$: Currently picked (1 if a train is currently handling this operation, 0 otherwise).
     \item $x_8$: Picked (1 if the operation has already been picked, 0 otherwise).
     \item $x_9$: Not picked yet (1 if the operation has not been picked but can be picked in the future, 0 otherwise).
-    \item $x_{10}$: Feasible (1 if the operation can be picked, 0 otherwise).
+    \item $x_{10}$: Feasible (1 if the operation can be picked and does not violate any constraints, 0 otherwise).
     \item $x_{11}$: Cannot be picked (1 if the operation has not been picked and cannot be picked in the future, 0 otherwise).
     \item $x_{12}$: Threshold of the operation (0 if not present).
     \item $x_{13}$: Haversine component of the operation (0 if not present).
     \item $x_{14}$: Linear delay of the operation (0 if not present).
     \item $x_{15}$: Operation start time (0 if not started yet).
-    \item $x_{16}$: Operation end time (0 if not started yet).
+    \item $x_{16}$: Operation end time (0 if not ended yet).
 \end{itemize}
 
 Edges in the graph are assigned a feature vector that captures the type of relationship and resource constraints. 
@@ -496,7 +501,7 @@ In addition to the node and edge features, the graph is also characterized by a 
 This graph-level feature vector contains a single entry, representing the current timestep of the solution. 
 By including this global feature, the model gains a crucial awareness of the temporal context.
 
-This representation provides a simple yet comprehensive structure for encoding the operations and their relationships, which can be processed by a Graph Neural Network (GNN) to generate a graph embedding for downstream decision-making tasks.
+This representation provides a simple yet comprehensive structure for encoding the operations and their relationships, which can be processed by a GNN to generate a graph embedding for downstream decision-making tasks.
 
 \subsection{Action Space}
 \label{sss:action_space}
@@ -510,7 +515,8 @@ The action space in this formulation consists of three primary actions that the 
     \item \textbf{Advance Timestep:} The agent advances the simulation a timestep, allowing the environment to update the state of operations and resources. This action is used when no immediate scheduling decisions can be made or when the agent determines that advancing time is the optimal strategy.
 \end{itemize}
 
-Each action is represented as a discrete choice, and the agent's policy maps the current state of the environment to one of these actions. The design of this action space ensures that the agent has the flexibility to make scheduling decisions dynamically while adhering to the constraints of the problem.
+Each action is represented as a discrete choice, and the agent's policy maps the current state of the environment to one of these actions. 
+The design of this action space ensures that the agent has the flexibility to make scheduling decisions while adhering to the constraints of the problem.
 
 \section{Results}
 \label{sse:results}
@@ -548,7 +554,7 @@ Future work could explore more expressive and flexible action representations, s
 Additionally, incorporating domain-specific heuristics or constraints directly into the action space could improve the efficiency and feasibility of the learned policies.
 
 \subsubsection{Graph Reinforcement Learning Algorithm Development}
-The integration of Graph Neural Networks (GNNs) with reinforcement learning (RL) has shown promise in handling graph-structured data. 
+The integration of GNNs with RL has shown promise in handling graph-structured data. 
 However, the development of specialized graph RL algorithms tailored to the unique characteristics of train dispatching remains an open challenge. 
 Future research could focus on designing algorithms that leverage the structural properties of train operation and resource conflict graphs, enabling more efficient learning and better generalization across different network configurations.
 
@@ -577,7 +583,7 @@ This honors thesis introduces a proof-of-concept reinforcement learning framewor
 By framing the problem as a Markov Decision Process and leveraging Graph Neural Networks, this work provides a foundational approach to train dispatching in the DISPLIB format that is both scalable and extensible.
 
 As a formulation-focused study, this thesis aims to inspire future research in applying reinforcement learning to complex scheduling and resource allocation problems. 
-Future efforts should prioritize refining the action space, developing tailored graph reinforcement learning algorithms, and exploring applications in other domains. 
+Future efforts should prioritize refining the action space, developing tailored graph reinforcement learning algorithms, exploring other applications, and integrating reinforcement learning with mixed integer programming to achieve scalable optimal solutions. 
 These advancements will build upon the groundwork laid here, contributing to the broader understanding and development of intelligent transportation systems.
 
 
