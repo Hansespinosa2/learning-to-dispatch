@@ -66,7 +66,8 @@ To provide a thorough understanding of the approach, the remainder of this paper
 In Section~\ref{sse:background}, we present the foundational background necessary for our formulation, beginning with a formal description of the Train Dispatch Problem, reinforcement learning, and graph neural networks.
 These concepts are then reinforced in a discussion of recent research that inspired this work.
 Section~\ref{sse:formulation} details the proposed formulation, introducing Train Operation Graphs (\ref{sss:train_ops}), Resource Conflict Graphs (\ref{sss:resource_conflicts}), and the state and action spaces (\ref{sss:state_space}, \ref{sss:action_space}). 
-Finally, Section~\ref{sse:discussion} preliminary results are showcased from a graph-based Deep Q-Network (DQN) agent followed by future directions for work.
+Section~\ref{sse:results} presents the outcomes of implementing the proposed reinforcement learning framework for the Train Dispatching Problem. It highlights the design of the graph-based DQN agent, the reward function employed, and the limitations observed during experimentation.
+Finally, Section~\ref{sse:conclusion} preliminary results are showcased from a graph-based Deep Q-Network (DQN) agent followed by future directions for work.
 
 
 
@@ -301,9 +302,9 @@ The ability of GNNs to learn from dynamic graph-structured data is a core concep
 
 \section{Formulation}
 \label{sse:formulation}
-The proposed formulation introduces a approach to the TDP by leveraging both graph-based representations and reinforcement learning techniques. 
-By modeling train operations as Directed Acyclic Graphs (DAGs) and resource conflicts as Resource Conflict Graphs (RCGs), this formulate aims to capture the intricate dependencies and constraints inherent to railway systems. 
-The integration of Graph Neural Networks (GNNs) enables efficient processing of these graph structures, while the reinforcement learning agent learns to make optimal dispatching decisions dynamically. 
+The following formulation introduces an approach to the TDP leveraging both graph-based representations and reinforcement learning techniques. 
+By modeling train operations as Directed Acyclic Graphs (DAGs) and resource conflicts as Resource Conflict Graphs (RCGs), this formulation aims to capture the dependencies and constraints inherent to railway systems. 
+The integration of GNNs is a crucial component that enables the reinforcement learning agent to process these graph structures effectively.
 
 The remainder of this section is organized as follows. 
 Subsection~\ref{sss:train_ops} introduces the concept of Train Operation Graphs in the DISPLIB format, detailing their structure and role in representing train operations and constraints. 
@@ -313,21 +314,73 @@ Finally, Subsection~\ref{sss:action_space} outlines the action space, specifying
 \subsection{Train Operation Graphs}
 \label{sss:train_ops}
 
-The Train Operation Directed Acyclic Graph (DAG) format provides a structured representation of train operations and their constraints. Conceptually, each train is modeled as a DAG, called the operations graph, with the following key components:
+The Train Operation Directed Acyclic Graph (DAG) format provides a structured representation of train operations and their constraints. 
+Conceptually, each train is modeled as a DAG, called the operations graph, where each node represents a possible operation the train can choose and each edge represents the transitions between operation.
+The primary components of the operations graphs are outlined as follows:
 
 \begin{itemize}
     \item \textbf{Nodes:} Represent operations, each with:
     \begin{itemize}
-        \item A \textbf{minimum duration} $\delta$, specifying the shortest allowable time for the operation.
-        \item \textbf{Start time bounds} $[t_{\text{min}}, t_{\text{max}}]$, defining when the operation may begin.
-        \item A set of \textbf{resources} required exclusively during the operation, each with an optional \textbf{release time}.
+        \item A \textbf{minimum duration} $\delta$, indicating the shortest permissible time for the operation.
+        \item \textbf{Start time bounds} $[t_{\text{min}}, t_{\text{max}}]$, specifying the allowable time window for the operation to commence.
+        \item A set of \textbf{resources} required exclusively during the operation, each potentially associated with a \textbf{release time}. These resources typically represent the rail track section occupied by the operation.
     \end{itemize}
     \item \textbf{Edges:} Define precedence constraints between operations, ensuring that dependent operations are executed in the correct order.
     \item \textbf{Entry and Exit Nodes:} The graph has a single \textbf{entry operation} (no incoming edges) and a single \textbf{exit operation} (no outgoing edges).
 \end{itemize}
 
+A visual example of a very simple train's operation graph can be seen in Figure~\ref{fig:train_dag}.
+In this small example, the train has only one decision to make: choosing between operation 1 and operation 2. 
+It then proceeds to operation 3, which has a minimum duration of 5, before moving to the exit operation.
+
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[
+        node/.style={circle, draw, fill=blue!20, minimum size=1.2cm, align=center},
+        edge/.style={->, thick},
+        resource/.style={draw, rounded corners, fill=orange!30, minimum width=1.5cm, minimum height=1cm},
+        every node/.style={font=\small}
+    ]
+        % Nodes
+        \node[node] (op0) at (0, 0) {op 0 \\ $\delta = 5$ \\ $[]$};
+        \node[node] (op1) at (3, 1.5) {op 1 \\ $\delta = 0$ \\ $r_2$};
+        \node[node] (op2) at (3, -1.5) {op 2 \\ $\delta = 0$ \\ $r_1, r_2$};
+        \node[node] (op3) at (6, 0) {op 3 \\ $\delta = 5$ \\ $r_1$};
+        \node[node] (op4) at (9, 0) {op 4 \\ $\delta = 0$ \\ $[]$};
+
+        % Edges
+        \draw[edge] (op0) -- (op1);
+        \draw[edge] (op0) -- (op2);
+        \draw[edge] (op1) -- (op3);
+        \draw[edge] (op2) -- (op3);
+        \draw[edge] (op3) -- (op4);
+
+        % Additional DAG
+        % \node[node] (op0_new) at (0, -4) {op 0 \\ $\delta = 0$ \\ $[]$};
+        % \node[node] (op1_new) at (3, -4) {op 1 \\ $\delta = 0$ \\ $r_1$};
+        % \node[node] (op2_new) at (6, -4) {op 2 \\ $\delta = 0$ \\ $[]$};
+
+        % % Edges
+        % \draw[edge] (op0_new) -- (op1_new);
+        % \draw[edge] (op1_new) -- (op2_new);
+
+        % \draw[<->, red, thick] (op1) -- (op2);
+        % \draw[<->, red, thick] (op3) -- (op2);
+        % \draw[<->, red, thick] (op1_new) -- (op2);
+        % \draw[<->, red, thick] (op1_new) -- (op3);
+
+    \end{tikzpicture}
+    \caption{Example Train Operation DAG with resource and duration constraints.}
+    \label{fig:train_dag}
+\end{figure}
+
+The Train Operation Graphs serve as the foundation for modeling the sequential decision-making process for one train.
+However, these graphs alone are insufficient to capture the interactions and conflicts between multiple trains sharing the same resources. 
+
 \subsubsection{Resources and Constraints}
-Resources represent entities (e.g., track sections) that cannot be shared between trains simultaneously. Operations requiring the same resource must satisfy the following:
+Resources represent entities (e.g., track sections) that cannot be shared between trains simultaneously. 
+Operations requiring the same resource must satisfy the following:
 \begin{itemize}
     \item The \textbf{end event} of one operation must precede the \textbf{start event} of the next.
     \item The \textbf{release time} of the resource must be respected.
@@ -344,11 +397,25 @@ A solution is feasible if:
 \end{enumerate}
 
 \subsubsection{Objective Function}
-The objective minimizes the cost of delays, defined as:
+The DISPLIB competition defines the objective as minimizing delay costs, calculated as:
 \[
 v_i = c \cdot \max(0, t - t_{\text{threshold}}) + d \cdot H(t - t_{\text{threshold}})
 \]
-where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is the Heaviside step function.
+where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is the Heaviside step function \cite{train:DISPLIB2025}.
+
+Alternative objective functions can also be considered, such as minimizing the total time required for all trains to complete their respective exit operations.
+
+\subsection{Resource Conflict Graphs}
+\label{sss:resource_conflicts}
+To abstract resource labels from individual operations, this formulation introduces a new type of edge to represent resource conflicts between operations. 
+These edges connect operations that share the same resource, transforming the disjointed train operation DAGs into a unified graph structure. 
+
+Figure~\ref{fig:train_rcg} illustrates this concept, expanding on the toy example in Figure~\ref{fig:train_dag} with two trains. 
+In this example, operation 2 of Train A utilizes resource $r_1$, which is also required by operation 3 of Train A and operation 1 of Train B. 
+By introducing resource conflict edges, the formulation captures these dependencies and creates a "super graph" that integrates all train operation DAGs into a single, connected graph.
+
+This unified graph serves as the foundation for the state space in the Markov Decision Process (MDP), encapsulating both individual train operations and their resource-sharing constraints. 
+Such a representation enables the reinforcement learning agent to reason about both local and global interactions within the railway network.
 
 \begin{figure}
     \centering
@@ -388,13 +455,8 @@ where $c$ and $d$ are constants, $t$ is the operation's start time, and $H$ is t
 
     \end{tikzpicture}
     \caption{Example Train Operation DAG with resource and duration constraints.}
-    \label{fig:train_dag}
+    \label{fig:train_rcg}
 \end{figure}
-
-
-\subsection{Resource Conflict Graphs}
-\label{sss:resource_conflicts}
-
 
 \subsection{State Space}
 \label{sss:state_space}
@@ -430,6 +492,10 @@ The edge feature vector is defined as:
     \item $e_3$: Release time (the release time of the incoming operation's resource, 0 if there is no release time or if it is an operation type edge)
 \end{itemize}
 
+In addition to the node and edge features, the graph is also characterized by a global feature vector, denoted as \textbf{y}. 
+This graph-level feature vector contains a single entry, representing the current timestep of the solution. 
+By including this global feature, the model gains a crucial awareness of the temporal context.
+
 This representation provides a simple yet comprehensive structure for encoding the operations and their relationships, which can be processed by a Graph Neural Network (GNN) to generate a graph embedding for downstream decision-making tasks.
 
 \subsection{Action Space}
@@ -441,19 +507,36 @@ The action space in this formulation consists of three primary actions that the 
 
     \item \textbf{Discard Node:} The agent chooses to discard a specific operation node, indicating that the operation will not be scheduled. This action is irreversible and is typically used for operations that are deemed unnecessary or infeasible to include in the schedule.
 
-    \item \textbf{Advance Timestep:} The agent advances the simulation to the next timestep, allowing the environment to update the state of operations and resources. This action is used when no immediate scheduling decisions can be made or when the agent determines that advancing time is the optimal strategy.
+    \item \textbf{Advance Timestep:} The agent advances the simulation a timestep, allowing the environment to update the state of operations and resources. This action is used when no immediate scheduling decisions can be made or when the agent determines that advancing time is the optimal strategy.
 \end{itemize}
 
 Each action is represented as a discrete choice, and the agent's policy maps the current state of the environment to one of these actions. The design of this action space ensures that the agent has the flexibility to make scheduling decisions dynamically while adhering to the constraints of the problem.
 
+\section{Results}
+\label{sse:results}
+
+\subsection{Implemented Agent}
+The implemented solution features a graph-based DQN agent designed to operate on the nodes of the train operation graph. 
+At each decision step, the DQN agent is provided with a node from the graph and outputs one of the three possible actions: \textit{add node}, \textit{discard node}, or \textit{advance timestep}. 
+If no node is deemed feasible at a given time, the environment automatically advances the simulation until the next decision point is reached. 
+This ensures that the agent can continue making decisions without encountering unnecessary interruptions.
+
+The full graph, which serves as the input to the agent, is processed by a GNN. 
+The GNN computes embeddings for both nodes and edges, capturing the structural and relational information within the graph. 
+These embeddings are then utilized by the DQN agent to output a solution, which attempts to effectively leverage the graph's topology and features to guide decision-making.
+
+\subsection{Reward Function and Limitations}
+The current reward function is designed to encourage the agent to compute feasible solutions efficiently. 
+Specifically, the reward structure penalizes the agent for each decision it makes, incentivizing it to arrive at a solution in as few steps as possible. Additionally, the agent is rewarded for producing a feasible solution that adheres to the constraints of the Train Dispatching Problem.
+
+However, a significant limitation of the current implementation is the absence of penalties for encountering deadlocks. 
+Deadlocks, which occur when no further progress can be made without violating constraints, are critical to avoid in train dispatching scenarios. 
+The lack of explicit penalties for deadlocks seems to lead the agent to overlook strategies that proactively prevent such situations. 
+Future iterations of the reward function should address this limitation by incorporating penalties for deadlocks, ensuring that the agent learns to avoid gridlock.
 
 
-
-\section{Discussion and Future Work}
-\label{sse:discussion}
-
-\subsection{Discussion}
-\label{sss:discussion}
+\section{Conclusion and Future Work}
+\label{sse:conclusion}
 
 \subsection{Future Work}
 \label{sss:future_work}
@@ -474,6 +557,19 @@ While this work focuses on train dispatching, the proposed framework has the pot
 Examples include air traffic management, urban transit systems, and supply chain logistics. 
 Extending the framework to these applications would require domain-specific modifications to the state and action spaces, as well as the underlying graph representations, but could significantly broaden the impact and utility of the approach.
 
+\subsubsection{Action Space for Constraint Reduction}
+The current action space focuses on selecting operations or advancing the simulation timestep. 
+However, an alternative approach is to redefine the action space to directly influence the constraint or problem space, enabling the agent to assist in solving the Train Dispatching Problem in conjunction with Mixed-Integer Programming (MIP) solvers.
+
+In this modified action space, the agent's actions could be designed to:
+\begin{itemize}
+    \item \textbf{Fix Routing Decisions:} The agent selects specific routing decisions for trains, effectively reducing the number of feasible solutions that the MIP solver must consider. For example, the agent could decide which track segment a train should use, thereby eliminating alternative routes from the problem space.
+    \item \textbf{Prioritize Subproblems:} The agent determines which subproblems or regions of the railway network should be prioritized for optimization. This allows the MIP solver to focus computational resources on the most critical areas.
+\end{itemize}
+
+This hybrid approach has the potential to significantly improve scalability and solution quality, particularly for large-scale railway networks with complex constraints. 
+Future work could explore the integration of this action space with state-of-the-art MIP solvers.
+
 \subsection{Conclusion}
 \label{sss:conclusion}
 
@@ -485,275 +581,275 @@ Future efforts should prioritize refining the action space, developing tailored 
 These advancements will build upon the groundwork laid here, contributing to the broader understanding and development of intelligent transportation systems.
 
 
-\section{Appendix}
+% \section{Appendix}
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}[
-        qnet/.style={draw, rounded corners, fill=blue!20, minimum width=1.2cm, minimum height=1.2cm},
-        module/.style={draw, rounded corners, fill=purple!20, minimum width=1.2cm, minimum height=1.2cm},
-        action/.style={draw, rounded corners, fill=orange!30, minimum width=1.2cm, minimum height=1.2cm},
-        state/.style={draw, rounded corners, fill=green!20, minimum width=1.2cm, minimum height=1.2cm},
-        arrow/.style={->, thick, >=Stealth},
-        every node/.style={font=\scriptsize}
-      ]
-        % Vertical lines
-        \draw[thick] (0.8,0) -- (0.8,2.4);
-        \draw[thick] (1.6,0) -- (1.6,2.4);
-        % Horizontal lines
-        \draw[thick] (0,0.8) -- (2.4,0.8);
-        \draw[thick] (0,1.6) -- (2.4,1.6);
+% \begin{figure}
+%     \centering
+%     \begin{tikzpicture}[
+%         qnet/.style={draw, rounded corners, fill=blue!20, minimum width=1.2cm, minimum height=1.2cm},
+%         module/.style={draw, rounded corners, fill=purple!20, minimum width=1.2cm, minimum height=1.2cm},
+%         action/.style={draw, rounded corners, fill=orange!30, minimum width=1.2cm, minimum height=1.2cm},
+%         state/.style={draw, rounded corners, fill=green!20, minimum width=1.2cm, minimum height=1.2cm},
+%         arrow/.style={->, thick, >=Stealth},
+%         every node/.style={font=\scriptsize}
+%       ]
+%         % Vertical lines
+%         \draw[thick] (0.8,0) -- (0.8,2.4);
+%         \draw[thick] (1.6,0) -- (1.6,2.4);
+%         % Horizontal lines
+%         \draw[thick] (0,0.8) -- (2.4,0.8);
+%         \draw[thick] (0,1.6) -- (2.4,1.6);
         
-        % Xs and Os
-        \node at (0.4, 2) {X};
-        \node at (1.2, 2) {O};
-        \node at (2, 2) {};
-        \node at (0.4, 1.2) {O};
-        \node at (1.2, 1.2) {};
-        \node at (2, 1.2) {O};
-        \node at (0.4, 0.4) {X};
-        \node at (1.2, 0.4) {};
-        \node at (2, 0.4) {};
+%         % Xs and Os
+%         \node at (0.4, 2) {X};
+%         \node at (1.2, 2) {O};
+%         \node at (2, 2) {};
+%         \node at (0.4, 1.2) {O};
+%         \node at (1.2, 1.2) {};
+%         \node at (2, 1.2) {O};
+%         \node at (0.4, 0.4) {X};
+%         \node at (1.2, 0.4) {};
+%         \node at (2, 0.4) {};
 
-        \node[state] (state) at (4,1.2) {
-            $\begin{bmatrix}
-            s_1 = 1 \\ s_2 = -1 \\ s_3 = 0 \\ s_4 = -1 \\ s_5 = 0 \\ s_6 = -1 \\ s_7 = 1 \\ s_8 = 0 \\ s_9 = 0
-            \end{bmatrix}$
-        };
-        \draw[arrow] (2.4,1.2) -- (state);
+%         \node[state] (state) at (4,1.2) {
+%             $\begin{bmatrix}
+%             s_1 = 1 \\ s_2 = -1 \\ s_3 = 0 \\ s_4 = -1 \\ s_5 = 0 \\ s_6 = -1 \\ s_7 = 1 \\ s_8 = 0 \\ s_9 = 0
+%             \end{bmatrix}$
+%         };
+%         \draw[arrow] (2.4,1.2) -- (state);
 
-        \begin{scope}[shift={(6.5, 2)}]
-            % Box and title
-            \node[draw, rounded corners, thick, fill=blue!20, fit={(0, -1.6) (1.6, 0)}, inner sep=0.4cm, label={[yshift=-0.4cm]above:Q-Network}] (box) {};
+%         \begin{scope}[shift={(6.5, 2)}]
+%             % Box and title
+%             \node[draw, rounded corners, thick, fill=blue!20, fit={(0, -1.6) (1.6, 0)}, inner sep=0.4cm, label={[yshift=-0.4cm]above:Q-Network}] (box) {};
             
-            % Input layer
-            \foreach \i in {1, 2} {
-                \node[circle, draw, fill=green!20, minimum size=0.3cm] (input\i) at (0, -\i*0.4) {};
-            }
-            \node at (0, -1.2) {$\vdots$};
-            \node[circle, draw, fill=green!20, minimum size=0.3cm] (input3) at (0, -1.6) {};
+%             % Input layer
+%             \foreach \i in {1, 2} {
+%                 \node[circle, draw, fill=green!20, minimum size=0.3cm] (input\i) at (0, -\i*0.4) {};
+%             }
+%             \node at (0, -1.2) {$\vdots$};
+%             \node[circle, draw, fill=green!20, minimum size=0.3cm] (input3) at (0, -1.6) {};
             
-            % Hidden layer
-            \foreach \i in {1, 2} {
-                \node[circle, draw, fill=purple!20, minimum size=0.3cm] (hidden\i) at (0.8, -\i*0.4-0.2) {};
-            }
+%             % Hidden layer
+%             \foreach \i in {1, 2} {
+%                 \node[circle, draw, fill=purple!20, minimum size=0.3cm] (hidden\i) at (0.8, -\i*0.4-0.2) {};
+%             }
             
-            % Output layer
-            \node[circle, draw, fill=orange!30, minimum size=0.3cm] (output) at (1.6, -0.8) {};
+%             % Output layer
+%             \node[circle, draw, fill=orange!30, minimum size=0.3cm] (output) at (1.6, -0.8) {};
             
-            % Connections
-            \foreach \i in {1, 2, 3} {
-                \foreach \j in {1, 2} {
-                    \draw[->, thick] (input\i) -- (hidden\j);
-                }
-            }
-            \foreach \i in {1, 2} {
-                \draw[->, thick] (hidden\i) -- (output);
-            }
-        \end{scope}
-        \draw[arrow] (state) -- (box);
+%             % Connections
+%             \foreach \i in {1, 2, 3} {
+%                 \foreach \j in {1, 2} {
+%                     \draw[->, thick] (input\i) -- (hidden\j);
+%                 }
+%             }
+%             \foreach \i in {1, 2} {
+%                 \draw[->, thick] (hidden\i) -- (output);
+%             }
+%         \end{scope}
+%         \draw[arrow] (state) -- (box);
 
-        \node[action] (action) at (10, 1.2) {Action};
+%         \node[action] (action) at (10, 1.2) {Action};
 
-        \draw[arrow] (box) -- (action);
+%         \draw[arrow] (box) -- (action);
         
-    \end{tikzpicture}
-    \caption{Illustration of a Q-Network processing a Tic-Tac-Toe board state.}
-    \label{fig:qnetwork_tictactoe}
-\end{figure}
+%     \end{tikzpicture}
+%     \caption{Illustration of a Q-Network processing a Tic-Tac-Toe board state.}
+%     \label{fig:qnetwork_tictactoe}
+% \end{figure}
 
 
-\begin{figure}[htbp]
-    \centering
+% \begin{figure}[htbp]
+%     \centering
 
-    % ANN
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \begin{tikzpicture}[scale=0.8,
-            input/.style={circle,draw=blue!50,fill=blue!20,thick,minimum size=1.2em},
-            hidden/.style={circle,draw=black!60,fill=black!10,thick,minimum size=1.2em},
-            output/.style={circle,draw=red!70,fill=red!20,thick,minimum size=1.2em}
-        ]
-            % Input Layer
-            \foreach \i in {1,...,3}
-                \node[input] (I\i) at (0,-\i) {};
+%     % ANN
+%     \begin{subfigure}[b]{0.3\textwidth}
+%         \centering
+%         \begin{tikzpicture}[scale=0.8,
+%             input/.style={circle,draw=blue!50,fill=blue!20,thick,minimum size=1.2em},
+%             hidden/.style={circle,draw=black!60,fill=black!10,thick,minimum size=1.2em},
+%             output/.style={circle,draw=red!70,fill=red!20,thick,minimum size=1.2em}
+%         ]
+%             % Input Layer
+%             \foreach \i in {1,...,3}
+%                 \node[input] (I\i) at (0,-\i) {};
 
-            % Hidden Layer
-            \foreach \i in {1,...,4}
-                \node[hidden] (H\i) at (2,-\i+0.5) {};
+%             % Hidden Layer
+%             \foreach \i in {1,...,4}
+%                 \node[hidden] (H\i) at (2,-\i+0.5) {};
 
-            % Output Layer
-            \foreach \i in {1,...,2}
-                \node[output] (O\i) at (4,-\i-0.5) {};
+%             % Output Layer
+%             \foreach \i in {1,...,2}
+%                 \node[output] (O\i) at (4,-\i-0.5) {};
 
-            % Connections
-            \foreach \i in {1,...,3}
-                \foreach \j in {1,...,4}
-                    \draw[->] (I\i) -- (H\j);
+%             % Connections
+%             \foreach \i in {1,...,3}
+%                 \foreach \j in {1,...,4}
+%                     \draw[->] (I\i) -- (H\j);
 
-            \foreach \i in {1,...,4}
-                \foreach \j in {1,...,2}
-                    \draw[->] (H\i) -- (O\j);
-        \end{tikzpicture}
-        \caption{Fully Connected ANN}
-    \end{subfigure}
-    \hfill
+%             \foreach \i in {1,...,4}
+%                 \foreach \j in {1,...,2}
+%                     \draw[->] (H\i) -- (O\j);
+%         \end{tikzpicture}
+%         \caption{Fully Connected ANN}
+%     \end{subfigure}
+%     \hfill
 
-    % CNN
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-            \begin{tikzpicture}[
-                image/.style={draw, rounded corners, fill=blue!20, minimum width=2.5cm, minimum height=2.5cm},
-                filter/.style={draw, thick, fill=red!20, minimum width=1cm, minimum height=1cm},
-                feature/.style={draw, thick, fill=green!20, minimum width=1cm, minimum height=2cm},
-                ann/.style={draw, thick, fill=purple!20, circle, minimum size=1cm},
-                arrow/.style={->, thick, >=Stealth},
-                every node/.style={font=\small}
-            ]
+%     % CNN
+%     \begin{subfigure}[b]{0.3\textwidth}
+%         \centering
+%             \begin{tikzpicture}[
+%                 image/.style={draw, rounded corners, fill=blue!20, minimum width=2.5cm, minimum height=2.5cm},
+%                 filter/.style={draw, thick, fill=red!20, minimum width=1cm, minimum height=1cm},
+%                 feature/.style={draw, thick, fill=green!20, minimum width=1cm, minimum height=2cm},
+%                 ann/.style={draw, thick, fill=purple!20, circle, minimum size=1cm},
+%                 arrow/.style={->, thick, >=Stealth},
+%                 every node/.style={font=\small}
+%             ]
 
-            % Nodes
-            \node[image] (input) at (0, 0) {\includegraphics[width=2.5cm]{example-image}};
-            \node[filter] (filter) at (0, -2.5) {};
-            \node[feature] (feature) at (0, -5) {};
-            \node[ann] (ann) at (0, -7.5) {NN};
+%             % Nodes
+%             \node[image] (input) at (0, 0) {\includegraphics[width=2.5cm]{example-image}};
+%             \node[filter] (filter) at (0, -2.5) {};
+%             \node[feature] (feature) at (0, -5) {};
+%             \node[ann] (ann) at (0, -7.5) {NN};
 
-            % Labels
-            \node[right] at (input.east) {28x28 Image};
-            \node[right] at (filter.east) {3x3 Filter};
-            \node[right] at (feature.east) {Pooled Features};
-            \node[right] at (ann.east) {Neural Network};
+%             % Labels
+%             \node[right] at (input.east) {28x28 Image};
+%             \node[right] at (filter.east) {3x3 Filter};
+%             \node[right] at (feature.east) {Pooled Features};
+%             \node[right] at (ann.east) {Neural Network};
 
-            % Arrows
-            \draw[arrow] (input) -- (filter);
-            \draw[arrow] (filter) -- (feature);
-            \draw[arrow] (feature) -- (ann);
+%             % Arrows
+%             \draw[arrow] (input) -- (filter);
+%             \draw[arrow] (filter) -- (feature);
+%             \draw[arrow] (feature) -- (ann);
 
-            \end{tikzpicture}
-            \caption{Convolutional Neural Network (CNN)}
-    \end{subfigure}
-    \hfill
+%             \end{tikzpicture}
+%             \caption{Convolutional Neural Network (CNN)}
+%     \end{subfigure}
+%     \hfill
 
-    % GNN
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-            \begin{tikzpicture}[
-                node/.style={circle, draw, fill=orange!30, minimum size=1cm},
-                message/.style={draw, thick, fill=blue!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
-                aggregate/.style={draw, thick, fill=green!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
-                arrow/.style={->, thick, >=Stealth},
-                doublearrow/.style={<->, dotted, thick, >=Stealth},
-                every node/.style={font=\small}
-            ]
+%     % GNN
+%     \begin{subfigure}[b]{0.3\textwidth}
+%         \centering
+%             \begin{tikzpicture}[
+%                 node/.style={circle, draw, fill=orange!30, minimum size=1cm},
+%                 message/.style={draw, thick, fill=blue!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
+%                 aggregate/.style={draw, thick, fill=green!20, minimum width=1.5cm, minimum height=0.8cm, rounded corners},
+%                 arrow/.style={->, thick, >=Stealth},
+%                 doublearrow/.style={<->, dotted, thick, >=Stealth},
+%                 every node/.style={font=\small}
+%             ]
 
-            % Nodes
-            \node[node] (A) at (0, 0) {A};
-            \node[node] (B) at (2, 1.5) {B};
-            \node[node] (C) at (2, -1.5) {C};
-            \node[node] (D) at (4, 0) {D};
+%             % Nodes
+%             \node[node] (A) at (0, 0) {A};
+%             \node[node] (B) at (2, 1.5) {B};
+%             \node[node] (C) at (2, -1.5) {C};
+%             \node[node] (D) at (4, 0) {D};
 
-            % Edges
-            \draw[doublearrow] (A) -- (B);
-            \draw[doublearrow] (A) -- (C);
-            \draw[doublearrow] (B) -- (D);
-            \draw[doublearrow] (C) -- (D);
+%             % Edges
+%             \draw[doublearrow] (A) -- (B);
+%             \draw[doublearrow] (A) -- (C);
+%             \draw[doublearrow] (B) -- (D);
+%             \draw[doublearrow] (C) -- (D);
 
-            % Message Passing
-            \node[message] (msg) at (2, -3) {Message Passing};
-            \draw[arrow] (C) -- (msg);
-            \draw[arrow] (A) -- (msg);
-            \draw[arrow] (D) -- (msg);
+%             % Message Passing
+%             \node[message] (msg) at (2, -3) {Message Passing};
+%             \draw[arrow] (C) -- (msg);
+%             \draw[arrow] (A) -- (msg);
+%             \draw[arrow] (D) -- (msg);
 
-            % Aggregation
-            \node[aggregate] (agg) at (2, -4.5) {Aggregation};
-            \draw[arrow] (msg) -- (agg);
-            % Pooling
-            \node[aggregate] (pooling) at (2, -6) {Pooling};
-            \draw[arrow] (agg) -- (pooling);
+%             % Aggregation
+%             \node[aggregate] (agg) at (2, -4.5) {Aggregation};
+%             \draw[arrow] (msg) -- (agg);
+%             % Pooling
+%             \node[aggregate] (pooling) at (2, -6) {Pooling};
+%             \draw[arrow] (agg) -- (pooling);
             
 
-            % Output
-            \node[node, fill=purple!30] (output) at (2, -7.5) {NN};
-            \draw[arrow] (pooling) -- (output);
-            \end{tikzpicture}
-            \caption{Graph Neural Network (GNN) with Message Passing and Aggregation Steps}
-    \end{subfigure}
+%             % Output
+%             \node[node, fill=purple!30] (output) at (2, -7.5) {NN};
+%             \draw[arrow] (pooling) -- (output);
+%             \end{tikzpicture}
+%             \caption{Graph Neural Network (GNN) with Message Passing and Aggregation Steps}
+%     \end{subfigure}
 
-    \caption{Simplified visual comparison of common neural network architectures}
-\end{figure}
+%     \caption{Simplified visual comparison of common neural network architectures}
+% \end{figure}
 
-\begin{figure}
-    \begin{tikzpicture}[>=Stealth, node distance=2cm and 2cm]
+% \begin{figure}
+%     \begin{tikzpicture}[>=Stealth, node distance=2cm and 2cm]
 
-        % Styles
-        \tikzstyle{op} = [draw, minimum width=1.8cm, minimum height=1.2cm]
-        \tikzstyle{circleop} = [op, circle]
-        \tikzstyle{redarrow} = [->, red, thick]
-        \tikzstyle{blackarrow} = [->, thick]
+%         % Styles
+%         \tikzstyle{op} = [draw, minimum width=1.8cm, minimum height=1.2cm]
+%         \tikzstyle{circleop} = [op, circle]
+%         \tikzstyle{redarrow} = [->, red, thick]
+%         \tikzstyle{blackarrow} = [->, thick]
         
-        % Train A
-        \node[op] (a0) {op 0\\$r = [\,]$};
-        \node[circleop, above right=of a0] (a1) {op 1\\$r = [\,]$};
-        \node[circleop, below right=of a0] (a2) {op 2\\$r = [\,]$};
-        \node[circleop, right=of a1] (a3) {op 3\\$r = 1$};
-        \node[op, right=of a3] (a4) {op 4\\$r = [\,]$};
+%         % Train A
+%         \node[op] (a0) {op 0\\$r = [\,]$};
+%         \node[circleop, above right=of a0] (a1) {op 1\\$r = [\,]$};
+%         \node[circleop, below right=of a0] (a2) {op 2\\$r = [\,]$};
+%         \node[circleop, right=of a1] (a3) {op 3\\$r = 1$};
+%         \node[op, right=of a3] (a4) {op 4\\$r = [\,]$};
         
-        % Arrows for Train A
-        \draw[blackarrow] (a0) -- (a1);
-        \draw[blackarrow] (a0) -- (a2);
-        \draw[blackarrow] (a1) -- (a3);
-        \draw[blackarrow] (a3) -- (a4);
+%         % Arrows for Train A
+%         \draw[blackarrow] (a0) -- (a1);
+%         \draw[blackarrow] (a0) -- (a2);
+%         \draw[blackarrow] (a1) -- (a3);
+%         \draw[blackarrow] (a3) -- (a4);
         
-        % Red connections (Train A feedback or dependencies)
-        \draw[redarrow] (a1) -- (a2);
-        \draw[redarrow] (a2) -- (a1);
-        \draw[redarrow] (a2) -- (a3);
-        \draw[redarrow] (a2) -- (a2);
+%         % Red connections (Train A feedback or dependencies)
+%         \draw[redarrow] (a1) -- (a2);
+%         \draw[redarrow] (a2) -- (a1);
+%         \draw[redarrow] (a2) -- (a3);
+%         \draw[redarrow] (a2) -- (a2);
         
-        % Train B
-        \node[op, below left=4cm and 2cm of a2] (b0) {op 0\\$r = [\,]$};
-        \node[circleop, right=of b0] (b1) {op 1\\$r = 1$};
-        \node[op, right=of b1] (b2) {op 2\\$r = [\,]$};
+%         % Train B
+%         \node[op, below left=4cm and 2cm of a2] (b0) {op 0\\$r = [\,]$};
+%         \node[circleop, right=of b0] (b1) {op 1\\$r = 1$};
+%         \node[op, right=of b1] (b2) {op 2\\$r = [\,]$};
         
-        % Arrows for Train B
-        \draw[blackarrow] (b0) -- (b1);
-        \draw[blackarrow] (b1) -- (b2);
+%         % Arrows for Train B
+%         \draw[blackarrow] (b0) -- (b1);
+%         \draw[blackarrow] (b1) -- (b2);
         
-        % Labels
-        \node[above left=0.5cm of a0] {\textbf{Train A}};
-        \node[above left=0.5cm of b0] {\textbf{Train B}};
+%         % Labels
+%         \node[above left=0.5cm of a0] {\textbf{Train A}};
+%         \node[above left=0.5cm of b0] {\textbf{Train B}};
         
-    \end{tikzpicture}
+%     \end{tikzpicture}
     
-\end{figure}
+% \end{figure}
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}[
-      qnet/.style={draw, rounded corners, fill=blue!20, minimum width=3cm, minimum height=1.2cm},
-      module/.style={draw, rounded corners, fill=purple!20, minimum width=3cm, minimum height=1.2cm},
-      action/.style={draw, rounded corners, fill=orange!30, minimum width=3cm, minimum height=1.2cm},
-      state/.style={draw, rounded corners, fill=green!20, minimum width=3cm, minimum height=1.2cm},
-      arrow/.style={->, thick, >=Stealth},
-      every node/.style={font=\small}
-    ]
+% \begin{figure}
+%     \centering
+%     \begin{tikzpicture}[
+%       qnet/.style={draw, rounded corners, fill=blue!20, minimum width=3cm, minimum height=1.2cm},
+%       module/.style={draw, rounded corners, fill=purple!20, minimum width=3cm, minimum height=1.2cm},
+%       action/.style={draw, rounded corners, fill=orange!30, minimum width=3cm, minimum height=1.2cm},
+%       state/.style={draw, rounded corners, fill=green!20, minimum width=3cm, minimum height=1.2cm},
+%       arrow/.style={->, thick, >=Stealth},
+%       every node/.style={font=\small}
+%     ]
     
-    % Nodes
-    \node[state] (state) at (0, 2) {State $s_t$};
-    \node[qnet] (qnet) at (0, 0.5) {Q-Network Approximator};
-    \node[module] (explore) at (0, -1) {Exploration Module};
-    \node[action] (action) at (0, -2.5) {Action $a_t$};
+%     % Nodes
+%     \node[state] (state) at (0, 2) {State $s_t$};
+%     \node[qnet] (qnet) at (0, 0.5) {Q-Network Approximator};
+%     \node[module] (explore) at (0, -1) {Exploration Module};
+%     \node[action] (action) at (0, -2.5) {Action $a_t$};
     
-    % Arrows
-    \draw[arrow] (state) -- (qnet);
-    \draw[arrow] (qnet) -- (explore);
-    \draw[arrow] (explore) -- (action);
-    \draw[arrow] (action.east) to[bend right=30] node[right] {} ++(2,1) 
-        to[bend right=60] node[left] {$s_{t+1}$} (state.east);
+%     % Arrows
+%     \draw[arrow] (state) -- (qnet);
+%     \draw[arrow] (qnet) -- (explore);
+%     \draw[arrow] (explore) -- (action);
+%     \draw[arrow] (action.east) to[bend right=30] node[right] {} ++(2,1) 
+%         to[bend right=60] node[left] {$s_{t+1}$} (state.east);
 
-    \end{tikzpicture}
-    \caption{Simplified Deep Q-Network action selection and feedback loop.}
-    \label{fig:dqn_loop}
-\end{figure}
+%     \end{tikzpicture}
+%     \caption{Simplified Deep Q-Network action selection and feedback loop.}
+%     \label{fig:dqn_loop}
+% \end{figure}
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}  % Assuming your .bib file is named references.bib
